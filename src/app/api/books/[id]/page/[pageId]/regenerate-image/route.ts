@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { generatePageImage } from '@/lib/gemini/generateImage'
 
 export const maxDuration = 120
@@ -9,19 +9,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
   const { id: bookId, pageId } = await params
-  const supabase = await createClient()
-  const adminSupabase = await createAdminClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = await createAdminClient()
 
   const { data: book } = await supabase
     .from('books')
-    .select('user_id, image_regenerations_left, params')
+    .select('image_regenerations_left, params')
     .eq('id', bookId)
     .single()
 
-  if (!book || book.user_id !== user.id) {
+  if (!book) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
   if (book.image_regenerations_left <= 0) {
@@ -67,11 +63,11 @@ export async function POST(
 
   // Upload
   const filePath = `books/${bookId}/page-${pageId}-regen-${Date.now()}.jpg`
-  await adminSupabase.storage.from('book-images').upload(filePath, imageBuffer, {
+  await supabase.storage.from('book-images').upload(filePath, imageBuffer, {
     contentType: 'image/jpeg',
     upsert: true,
   })
-  const { data: urlData } = adminSupabase.storage.from('book-images').getPublicUrl(filePath)
+  const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
 
   // Update DB
   await supabase.from('book_pages').update({

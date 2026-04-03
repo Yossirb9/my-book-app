@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { createClient } from '@/lib/supabase/server'
 import { BookParams } from '@/types'
+import { randomUUID } from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Auth is optional — get user if logged in, otherwise create anonymously
+    let userId: string
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      userId = user?.id ?? randomUUID()
+    } catch {
+      userId = randomUUID()
     }
 
     const body = await req.json()
@@ -18,11 +23,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
+    // Use admin client to bypass RLS for anonymous users
+    const adminSupabase = await createAdminClient()
+
     // Create book record
-    const { data: book, error } = await supabase
+    const { data: book, error } = await adminSupabase
       .from('books')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         title: buildTitle(params),
         status: 'draft',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +55,7 @@ export async function POST(req: NextRequest) {
       description: c.description,
       image_url: c.imageUrl,
     }))
-    await supabase.from('characters').insert(characterInserts)
+    await adminSupabase.from('characters').insert(characterInserts)
 
     return NextResponse.json({ bookId: book.id })
 

@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
   const { id: bookId, pageId } = await params
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = await createAdminClient()
 
   const { data: book } = await supabase
     .from('books')
-    .select('user_id, text_regenerations_left')
+    .select('text_regenerations_left')
     .eq('id', bookId)
     .single()
 
-  if (!book || book.user_id !== user.id) {
+  if (!book) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
   if (book.text_regenerations_left <= 0) {
