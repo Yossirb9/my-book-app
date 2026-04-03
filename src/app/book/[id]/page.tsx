@@ -31,6 +31,9 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       image_url: p.image_url ?? undefined,
     }))
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const format = (book.params as any)?.format === 'square' ? 'square' : 'portrait'
+
   return (
     <BookViewer
       book={{
@@ -42,6 +45,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
         text_regenerations_left: book.text_regenerations_left,
       }}
       pages={pages}
+      format={format}
     />
   )
 }
