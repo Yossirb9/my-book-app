@@ -24,8 +24,10 @@ export default function CreatePage() {
   }, [router])
 
   return (
-    <main className="min-h-dvh bg-[#FFF9F0]">
-      <StepComponent />
+    <main className="min-h-dvh bg-[#FFF9F0] md:flex md:items-start md:justify-center">
+      <div className="w-full md:max-w-[500px] md:min-h-dvh">
+        <StepComponent />
+      </div>
     </main>
   )
 }

@@ -58,11 +58,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Mobile container */
+/* Mobile container — mobile only, desktop is full width */
 .mobile-container {
-  max-width: 430px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100dvh;
   background: var(--background);
   position: relative;
+}
+
+@media (max-width: 767px) {
+  .mobile-container {
+    max-width: 430px;
+    margin: 0 auto;
+  }
+}
+
+/* Wizard/book pages: always constrained to mobile width */
+.wizard-page {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
 }
