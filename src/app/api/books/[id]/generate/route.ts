@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { generateStory } from '@/lib/claude/generateStory'
+import { generateStory } from '@/lib/gemini/generateStory'
 import { generatePageImage } from '@/lib/gemini/generateImage'
 import { BookParams } from '@/types'
 
@@ -29,7 +29,7 @@ export async function POST(
 
     const bookParams: BookParams = book.params as unknown as BookParams
 
-    // 1. Generate story with Claude
+    // 1. Generate story with Gemini
     const pages = await generateStory(bookParams)
 
     // 2. Fetch character images from Supabase storage
