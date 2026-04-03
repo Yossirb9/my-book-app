@@ -30,8 +30,14 @@ export default function StepCharacters() {
   }
 
   const handleImageUpload = (id: string, file: File) => {
-    const url = URL.createObjectURL(file)
-    updateCharacter(id, { imageUrl: url })
+    // Use FileReader to get base64 data URL — blob URLs only work in the browser
+    // but base64 data URLs persist and can be sent to the server for Supabase upload
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      updateCharacter(id, { imageUrl: dataUrl })
+    }
+    reader.readAsDataURL(file)
   }
 
   const isValid = characters.length > 0 && characters.every((c) => c.name.trim() && c.imageUrl)

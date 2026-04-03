@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
-    // Use admin client to bypass RLS for anonymous users
     const adminSupabase = await createAdminClient()
 
     // Create book record
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
         params: params as any,
         image_regenerations_left: 3,
         text_regenerations_left: 3,
-        paid: true, // TODO: set to false and integrate Stripe before production
+        paid: true,
       })
       .select()
       .single()
@@ -47,14 +46,50 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create book' }, { status: 500 })
     }
 
-    // Insert characters
-    const characterInserts = params.characters.map((c) => ({
-      book_id: book.id,
-      name: c.name,
-      role: c.role,
-      description: c.description,
-      image_url: c.imageUrl,
-    }))
+    // Upload character photos to Supabase Storage and insert characters
+    const characterInserts = await Promise.all(
+      params.characters.map(async (c) => {
+        let imageUrl: string | undefined = undefined
+
+        if (c.imageUrl) {
+          try {
+            // imageUrl is a base64 data URL: "data:image/jpeg;base64,..."
+            const base64Match = c.imageUrl.match(/^data:(.+);base64,(.+)$/)
+            if (base64Match) {
+              const mimeType = base64Match[1]
+              const base64Data = base64Match[2]
+              const buffer = Buffer.from(base64Data, 'base64')
+              const ext = mimeType.split('/')[1]?.split('+')[0] || 'jpg'
+              const filePath = `characters/${book.id}/${c.id || randomUUID()}.${ext}`
+
+              const { error: uploadError } = await adminSupabase.storage
+                .from('book-images')
+                .upload(filePath, buffer, { contentType: mimeType, upsert: true })
+
+              if (!uploadError) {
+                const { data: urlData } = adminSupabase.storage
+                  .from('book-images')
+                  .getPublicUrl(filePath)
+                imageUrl = urlData.publicUrl
+              } else {
+                console.error('Character image upload error:', uploadError)
+              }
+            }
+          } catch (uploadErr) {
+            console.error('Failed to upload character image:', uploadErr)
+          }
+        }
+
+        return {
+          book_id: book.id,
+          name: c.name,
+          role: c.role,
+          description: c.description,
+          image_url: imageUrl,
+        }
+      })
+    )
+
     await adminSupabase.from('characters').insert(characterInserts)
 
     return NextResponse.json({ bookId: book.id })

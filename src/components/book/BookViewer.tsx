@@ -93,27 +93,30 @@ export default function BookViewer({ book, pages }: { book: Book; pages: Page[] 
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Image */}
-          <div className="flex-1 relative md:max-h-[65vh]">
-            {current?.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={current.image_url}
-                alt={`עמוד ${current.page_number}`}
-                className="w-full h-full object-contain md:object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-coral-100 to-peach-300 flex items-center justify-center">
-                <span className="text-6xl opacity-40">🎨</span>
-              </div>
-            )}
-          </div>
-
-          {/* Text */}
-          <div className="bg-white px-5 md:px-12 py-4 md:py-6 min-h-[100px] flex items-center">
-            <p className="text-gray-800 text-lg md:text-xl leading-relaxed font-medium text-right w-full max-w-3xl mx-auto">
-              {current?.text}
-            </p>
+          {/* Book Page — image + text like a real book page */}
+          <div className="flex-1 overflow-y-auto bg-white flex flex-col">
+            {/* Full image — no cropping, always shows complete illustration */}
+            <div className="w-full bg-gray-900">
+              {current?.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={current.image_url}
+                  alt={`עמוד ${current.page_number}`}
+                  className="w-full h-auto block"
+                  style={{ maxHeight: '70vh', objectFit: 'contain', margin: '0 auto' }}
+                />
+              ) : (
+                <div className="w-full aspect-square bg-gradient-to-br from-coral-100 to-peach-300 flex items-center justify-center">
+                  <span className="text-6xl opacity-40">🎨</span>
+                </div>
+              )}
+            </div>
+            {/* Text */}
+            <div className="bg-white px-5 md:px-12 py-5 md:py-8 flex-1">
+              <p className="text-gray-800 text-lg md:text-xl leading-relaxed font-medium text-right w-full max-w-3xl mx-auto">
+                {current?.text}
+              </p>
+            </div>
           </div>
 
           {/* Navigation */}

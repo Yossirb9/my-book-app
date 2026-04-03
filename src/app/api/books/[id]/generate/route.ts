@@ -50,15 +50,15 @@ export async function POST(
 
     // 3. Generate images + save pages
     for (const page of pages) {
-      // Generate image with Gemini — only pass refs for characters in this scene
+      // Generate image with Gemini — always send ALL character refs for consistency
       let imageUrl: string | undefined
       try {
         const imageBuffer = await generatePageImage(
           page.sceneDescription,
           bookParams.characters,
           bookParams,
-          characterImageBase64s,
-          page.charactersInScene
+          characterImageBase64s
+          // no scene filter — always send all refs so Gemini never forgets a face
         )
 
         // Upload to Supabase Storage
