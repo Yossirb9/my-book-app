@@ -8,49 +8,55 @@ export async function generatePageImage(
   characters: Character[],
   params: BookParams,
   characterImageBase64s: { name: string; base64: string; mimeType: string }[],
-  charactersInScene?: string[] // if provided, only send refs for these characters
+  charactersInScene?: string[]
 ): Promise<Buffer> {
   const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-image-preview' })
 
-  // Filter reference photos: only characters that appear in this scene
-  const relevantRefs = charactersInScene && charactersInScene.length > 0
+  // Use all refs unless a specific scene filter is provided
+  const refs = (charactersInScene && charactersInScene.length > 0)
     ? characterImageBase64s.filter((ref) =>
-        charactersInScene.some((name) =>
-          name.trim().toLowerCase() === ref.name.trim().toLowerCase()
-        )
+        charactersInScene.some((n) => n.trim().toLowerCase() === ref.name.trim().toLowerCase())
       )
     : characterImageBase64s
 
-  const format = params.format === 'square' ? 'square 1:1' : 'portrait A4'
+  // Fall back to all refs if filter produced nothing
+  const relevantRefs = refs.length > 0 ? refs : characterImageBase64s
 
-  // Build character description list
-  const charDescriptions = (charactersInScene && charactersInScene.length > 0
-    ? characters.filter((c) => charactersInScene.some((n) => n.trim().toLowerCase() === c.name.trim().toLowerCase()))
-    : characters
-  ).map((c) => {
+  const charList = characters.map((c) => {
     const hasRef = relevantRefs.some((r) => r.name.trim().toLowerCase() === c.name.trim().toLowerCase())
-    return `- ${c.name}${c.description ? ': ' + c.description : ''}${hasRef ? ' [reference photo provided]' : ''}`
+    return `- ${c.name}${c.description ? ' (' + c.description + ')' : ''}${hasRef ? ' ← REFERENCE PHOTO ATTACHED' : ''}`
   }).join('\n')
 
-  const prompt = `Create a photorealistic children's book illustration.
+  const format = params.format === 'square' ? 'square 1:1 ratio' : 'portrait A4 ratio'
 
-SCENE:
+  const prompt = `TASK: Create a HIGH-QUALITY PHOTOREALISTIC photograph-style illustration for a personalized children's book.
+
+SCENE TO ILLUSTRATE:
 ${sceneDescription}
 
-CHARACTERS IN THIS SCENE:
-${charDescriptions}
+CHARACTERS:
+${charList}
 
-CRITICAL INSTRUCTIONS:
-${relevantRefs.length > 0
-  ? `- The ${relevantRefs.length} reference photo(s) provided show the REAL people — you MUST make the characters look EXACTLY like them
-- Match their face, skin tone, hair color/style, age, and facial features with precision
-- This is a personalized book — character likeness is the most important requirement`
-  : '- Draw the characters based on their descriptions'}
-- Style: photorealistic, warm and cinematic lighting, high quality
-- Mood: warm, loving, child-friendly atmosphere
-- Format: ${format} aspect ratio
-- NO text or words in the image
-- Background: detailed, cozy, story-appropriate setting`
+${relevantRefs.length > 0 ? `REFERENCE PHOTOS: I am attaching ${relevantRefs.length} real reference photo(s) of the characters.
+YOU MUST:
+- Make each character's face look IDENTICAL to their reference photo
+- Match exact facial features, skin tone, eye color, hair color, hair style, and age
+- The people in this book are REAL — parents will show this to their children
+- Character likeness is the #1 priority of this illustration` : ''}
+
+STYLE REQUIREMENTS (MANDATORY):
+- PHOTOREALISTIC style — like a high-end photograph or hyper-realistic digital art
+- NOT cartoon, NOT illustrated, NOT animated, NOT watercolor, NOT painterly
+- Cinematic warm lighting, soft depth of field
+- Rich detail in faces, clothing, and environment
+- Professional photography quality
+
+COMPOSITION:
+- Format: ${format}
+- Warm, inviting family atmosphere
+- Child-friendly scene with beautiful natural or home setting
+- NO text, words, letters, or writing anywhere in the image
+- Faces clearly visible and well-lit`
 
   const imageParts = relevantRefs.map((ref) => ({
     inlineData: {
