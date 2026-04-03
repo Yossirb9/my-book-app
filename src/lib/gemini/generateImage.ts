@@ -3,46 +3,56 @@ import { Character, BookParams } from '@/types'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-const STYLE_PROMPTS = {
-  realistic:
-    'photorealistic illustration style, warm colors, children book aesthetic, soft lighting, detailed faces matching reference photos',
-  illustrated:
-    'colorful illustrated children book style, vibrant colors, friendly cartoon aesthetic, detailed characters',
-}
-
 export async function generatePageImage(
   sceneDescription: string,
   characters: Character[],
   params: BookParams,
-  characterImageBase64s: { name: string; base64: string; mimeType: string }[]
+  characterImageBase64s: { name: string; base64: string; mimeType: string }[],
+  charactersInScene?: string[] // if provided, only send refs for these characters
 ): Promise<Buffer> {
   const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-image-preview' })
 
-  const characterDescriptions = characters
-    .map((c) => {
-      const ref = characterImageBase64s.find((r) => r.name === c.name)
-      return `${c.name}: ${c.description || 'as shown in reference photo'}`
-    })
-    .join('\n')
+  // Filter reference photos: only characters that appear in this scene
+  const relevantRefs = charactersInScene && charactersInScene.length > 0
+    ? characterImageBase64s.filter((ref) =>
+        charactersInScene.some((name) =>
+          name.trim().toLowerCase() === ref.name.trim().toLowerCase()
+        )
+      )
+    : characterImageBase64s
 
-  const prompt = `Create a children's book illustration for the following scene:
+  const format = params.format === 'square' ? 'square 1:1' : 'portrait A4'
 
-Scene: ${sceneDescription}
+  // Build character description list
+  const charDescriptions = (charactersInScene && charactersInScene.length > 0
+    ? characters.filter((c) => charactersInScene.some((n) => n.trim().toLowerCase() === c.name.trim().toLowerCase()))
+    : characters
+  ).map((c) => {
+    const hasRef = relevantRefs.some((r) => r.name.trim().toLowerCase() === c.name.trim().toLowerCase())
+    return `- ${c.name}${c.description ? ': ' + c.description : ''}${hasRef ? ' [reference photo provided]' : ''}`
+  }).join('\n')
 
-Characters in this scene:
-${characterDescriptions}
+  const prompt = `Create a photorealistic children's book illustration.
 
-Style: ${STYLE_PROMPTS[params.visualStyle]}
-Format: ${params.format === 'square' ? 'square 1:1 aspect ratio' : 'portrait A4 aspect ratio'}
+SCENE:
+${sceneDescription}
 
-CRITICAL: The characters must look EXACTLY like the reference photos provided.
-- Match faces, hair color, age, and general appearance precisely
-- Keep character appearance consistent with the reference images
-- Create a warm, child-friendly atmosphere
-- No text in the image
-- Hebrew children book aesthetic`
+CHARACTERS IN THIS SCENE:
+${charDescriptions}
 
-  const imageParts = characterImageBase64s.map((ref) => ({
+CRITICAL INSTRUCTIONS:
+${relevantRefs.length > 0
+  ? `- The ${relevantRefs.length} reference photo(s) provided show the REAL people — you MUST make the characters look EXACTLY like them
+- Match their face, skin tone, hair color/style, age, and facial features with precision
+- This is a personalized book — character likeness is the most important requirement`
+  : '- Draw the characters based on their descriptions'}
+- Style: photorealistic, warm and cinematic lighting, high quality
+- Mood: warm, loving, child-friendly atmosphere
+- Format: ${format} aspect ratio
+- NO text or words in the image
+- Background: detailed, cozy, story-appropriate setting`
+
+  const imageParts = relevantRefs.map((ref) => ({
     inlineData: {
       data: ref.base64,
       mimeType: ref.mimeType as 'image/jpeg' | 'image/png' | 'image/webp',
@@ -52,7 +62,6 @@ CRITICAL: The characters must look EXACTLY like the reference photos provided.
   const result = await model.generateContent([prompt, ...imageParts])
   const response = result.response
 
-  // Extract image from response
   const parts = response.candidates?.[0]?.content?.parts
   if (!parts) throw new Error('No image generated')
 

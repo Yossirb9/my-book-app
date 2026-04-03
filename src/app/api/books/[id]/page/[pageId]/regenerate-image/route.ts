@@ -51,7 +51,7 @@ export async function POST(
     })
   ).then((r) => r.filter(Boolean) as { name: string; base64: string; mimeType: string }[])
 
-  // Generate new image
+  // Generate new image (send all character refs for regeneration)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bookParams = book.params as any
   const imageBuffer = await generatePageImage(
@@ -59,6 +59,7 @@ export async function POST(
     bookParams.characters,
     bookParams,
     characterImageBase64s
+    // no charactersInScene filter — user can re-generate with all refs
   )
 
   // Upload

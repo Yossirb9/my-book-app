@@ -34,6 +34,7 @@ export interface StoryPage {
   pageNumber: number
   text: string
   sceneDescription: string
+  charactersInScene: string[] // names of characters appearing in this page
 }
 
 export async function generateStory(params: BookParams): Promise<StoryPage[]> {
@@ -63,10 +64,13 @@ export async function generateStory(params: BookParams): Promise<StoryPage[]> {
     {
       "pageNumber": 1,
       "text": "הטקסט לדף",
-      "sceneDescription": "תיאור הסצנה לאיור: מה קורה, היכן, מה עושות הדמויות, אווירה, צבעים מומלצים"
+      "sceneDescription": "תיאור הסצנה לאיור: מה קורה, היכן, מה עושות הדמויות, אווירה, צבעים מומלצים",
+      "charactersInScene": ["שם דמות 1", "שם דמות 2"]
     }
   ]
 }
+
+**לגבי charactersInScene:** רשימת שמות הדמויות שמופיעות פיזית בסצנה הזו (רק מהרשימה: ${params.characters.map((c) => c.name).join(', ')})
 
 **הנחיות:**
 - הטקסט לכל דף: קצר ומדויק לפי גיל היעד
