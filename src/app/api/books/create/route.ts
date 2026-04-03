@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         params: params as any,
         image_regenerations_left: 3,
         text_regenerations_left: 3,
-        paid: false,
+        paid: true, // TODO: set to false and integrate Stripe before production
       })
       .select()
       .single()
@@ -49,8 +49,6 @@ export async function POST(req: NextRequest) {
     }))
     await supabase.from('characters').insert(characterInserts)
 
-    // For now, return bookId and skip Stripe in dev
-    // In production, create Stripe checkout session here
     return NextResponse.json({ bookId: book.id })
 
   } catch (e) {

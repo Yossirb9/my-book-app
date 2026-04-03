@@ -1,12 +1,14 @@
 'use client'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo') || '/books'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,11 +23,38 @@ export default function LoginPage() {
     if (error) {
       setError('אימייל או סיסמה שגויים')
     } else {
-      router.push('/books')
+      router.push(returnTo)
     }
     setLoading(false)
   }
 
+  return (
+    <form onSubmit={handleLogin} className="flex flex-col gap-3">
+      <input
+        type="email"
+        placeholder="אימייל"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
+      />
+      <input
+        type="password"
+        placeholder="סיסמה"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
+      />
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+      <Button size="lg" type="submit" loading={loading}>
+        כניסה
+      </Button>
+    </form>
+  )
+}
+
+export default function LoginPage() {
   return (
     <main className="flex flex-col min-h-dvh bg-[#FFF9F0] justify-center px-6">
       <div className="text-center mb-8">
@@ -34,28 +63,9 @@ export default function LoginPage() {
         <p className="text-gray-500 text-sm mt-1">כניסה לחשבון</p>
       </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="אימייל"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
-        />
-        <input
-          type="password"
-          placeholder="סיסמה"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
-        />
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <Button size="lg" type="submit" loading={loading}>
-          כניסה
-        </Button>
-      </form>
+      <Suspense fallback={<div className="h-40" />}>
+        <LoginForm />
+      </Suspense>
 
       <p className="text-center text-sm text-gray-500 mt-4">
         אין לכם חשבון?{' '}
