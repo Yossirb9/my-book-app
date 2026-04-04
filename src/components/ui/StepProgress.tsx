@@ -12,53 +12,64 @@ export function StepProgress({ currentStep, totalSteps = CREATE_STEP_LABELS.leng
   const progress = `${Math.max(0, ((currentStep - 1) / Math.max(1, totalSteps - 1)) * 100)}%`
 
   return (
-    <div className="w-full max-w-[15rem] md:max-w-sm">
-      <div className="flex items-center justify-between gap-3 md:hidden">
+    <div className="w-full">
+      <div className="flex items-center justify-between gap-3 lg:hidden">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral-300">
             שלב {currentStep} מתוך {totalSteps}
           </p>
-          <p className="truncate text-sm font-bold text-gray-800">{CREATE_STEP_LABELS[currentStep - 1]}</p>
+          <p className="truncate text-sm font-bold text-white">{CREATE_STEP_LABELS[currentStep - 1]}</p>
         </div>
-        <div className="h-2 w-20 rounded-full bg-gray-200">
+        <div className="h-2 w-24 rounded-full bg-white/15">
           <div
-            className="h-full rounded-full bg-coral-500 transition-all duration-300"
+            className="h-full rounded-full bg-coral-400 transition-all duration-300"
             style={{ width: progress }}
           />
         </div>
       </div>
 
-      <div className="hidden md:block">
-        <div className="mb-3 h-2 w-full rounded-full bg-gray-200">
+      <div className="hidden lg:block">
+        <div className="mb-6 h-1.5 w-full rounded-full bg-white/10">
           <div
-            className="h-full rounded-full bg-coral-500 transition-all duration-300"
+            className="h-full rounded-full bg-[linear-gradient(90deg,#e87c53_0%,#ffb347_100%)] transition-all duration-300"
             style={{ width: progress }}
           />
         </div>
-        <div className="grid grid-cols-5 gap-2 text-center">
+
+        <div className="space-y-3">
           {CREATE_STEP_LABELS.map((label, index) => {
             const stepNumber = index + 1
+            const isDone = stepNumber < currentStep
+            const isCurrent = stepNumber === currentStep
 
             return (
-              <div key={label} className="flex flex-col items-center gap-2">
+              <div
+                key={label}
+                className={cn(
+                  'flex items-center gap-4 rounded-[1.35rem] border px-4 py-3 transition-all',
+                  isCurrent && 'border-coral-300/40 bg-coral-500/12 shadow-[0_12px_30px_rgba(232,124,83,0.12)]',
+                  isDone && 'border-white/10 bg-white/[0.06]',
+                  !isCurrent && !isDone && 'border-white/8 bg-transparent'
+                )}
+              >
                 <span
                   className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                    stepNumber < currentStep && 'bg-coral-500 text-white',
-                    stepNumber === currentStep && 'bg-coral-100 text-coral-700 ring-2 ring-coral-300',
-                    stepNumber > currentStep && 'bg-gray-200 text-gray-500'
+                    'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors',
+                    isDone && 'bg-coral-500 text-white',
+                    isCurrent && 'bg-white text-[#171925]',
+                    !isDone && !isCurrent && 'bg-white/10 text-white/45'
                   )}
                 >
-                  {stepNumber}
+                  {isDone ? '✓' : stepNumber}
                 </span>
-                <span
-                  className={cn(
-                    'text-[11px] font-medium leading-tight',
-                    stepNumber === currentStep ? 'text-gray-900' : 'text-gray-500'
-                  )}
-                >
-                  {label}
-                </span>
+                <div className="min-w-0">
+                  <p className={cn('text-sm font-semibold', isCurrent ? 'text-white' : isDone ? 'text-white/90' : 'text-white/55')}>
+                    {label}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-white/40">
+                    {isCurrent ? 'השלב הפעיל עכשיו' : isDone ? 'בוצע ונשמר' : 'ממתין לבחירה'}
+                  </p>
+                </div>
               </div>
             )
           })}

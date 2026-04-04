@@ -99,3 +99,49 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.create-shell {
+  --create-gutter: 1rem;
+}
+
+.create-stage {
+  position: relative;
+}
+
+.create-mobile-footer {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  margin-inline: auto;
+  width: min(100%, 640px);
+  background: linear-gradient(180deg, rgba(255, 244, 230, 0) 0%, rgba(255, 244, 230, 0.92) 24%, rgba(255, 244, 230, 0.98) 100%);
+  padding: 1rem 1rem 1.35rem;
+}
+
+.create-desktop-footer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 1rem 2rem 1.5rem;
+  background: linear-gradient(180deg, rgba(255, 244, 230, 0) 0%, rgba(255, 244, 230, 0.96) 24%, rgba(255, 244, 230, 0.995) 100%);
+}
+
+.create-desktop-footer-inner {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (min-width: 1024px) {
+  .create-shell {
+    --create-gutter: 1.5rem;
+  }
+
+  .create-sidebar {
+    min-height: calc(100dvh - 3rem);
+  }
+
+  .create-stage {
+    min-height: calc(100dvh - 3rem);
+  }
+}

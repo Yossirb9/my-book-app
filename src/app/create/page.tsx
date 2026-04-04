@@ -14,10 +14,8 @@ export default function CreatePage() {
   const StepComponent = STEPS[step - 1]
 
   return (
-    <main className="min-h-dvh bg-[#FFF9F0] md:flex md:items-start md:justify-center">
-      <div className="wizard-page w-full md:max-w-[640px]">
-        <StepComponent />
-      </div>
+    <main className="min-h-dvh bg-[radial-gradient(circle_at_top_right,rgba(232,124,83,0.16),transparent_22%),linear-gradient(180deg,#0f1018_0%,#171925_48%,#11111a_100%)]">
+      <StepComponent />
     </main>
   )
 }
