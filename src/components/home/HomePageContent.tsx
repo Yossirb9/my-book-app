@@ -43,6 +43,36 @@ const PRODUCTS = [
   },
 ]
 
+const JOURNAL_CHAPTERS = [
+  {
+    num: '01',
+    title: 'מי אני',
+    items: 'השם שלי · הדברים שאני אוהב/ת · מה מיוחד בי · האנשים שלי · מה משמח אותי',
+  },
+  {
+    num: '02',
+    title: 'רגעים של גדילה',
+    items: 'משהו שהצלחתי · רגע שהייתי אמיץ/ה · משהו חדש שלמדתי · רגע שהתאכזבתי ולמדתי ממנו',
+  },
+  {
+    num: '03',
+    title: 'שיחות עם אמא/אבא',
+    items: 'ממה אני גאה בעצמי · מה ההורה אוהב בי · זיכרון אהוב שלנו · מתי הרגשתי אהוב/ה',
+  },
+  {
+    num: '04',
+    title: 'תמונות ורגעים',
+    items: 'עמודי תמונות עם כיתובים אישיים · "זה היה יום חשוב כי..." · "כאן ממש צחקתי"',
+  },
+  {
+    num: '05',
+    title: 'העתיד שלי',
+    items: 'חלום שלי · משהו שאני רוצה ללמוד · מה אני מאחל/ת לעצמי',
+  },
+]
+
+const JOURNAL_FOR = ['יום הולדת', 'סוף שנה', 'לפני כיתה א׳', 'לידת אח/ות', 'מתנה מסבא/סבתא', 'שנה משמעותית']
+
 const HOW_IT_WORKS = [
   {
     title: 'בוחרים נושא',
@@ -204,15 +234,40 @@ export default function HomePageContent() {
                   </span>
                 </div>
                 <h3 className="mt-3 text-3xl font-black text-white">{PRODUCTS[1].title}</h3>
-                <p className="mt-3 text-base leading-8 text-white/75">{PRODUCTS[1].description}</p>
-                <ul className="mt-5 space-y-2">
-                  {PRODUCTS[1].features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-white/80">
-                      <span className="h-1.5 w-1.5 rounded-full bg-teal-400 flex-shrink-0" />
-                      {f}
-                    </li>
+                <p className="mt-2 text-sm leading-7 text-white/60">
+                  לא מתחרה על איורים, טקסט או מספר עמודים.<br />
+                  מתחרה על: חוויה משפחתית · ערך רגשי · תיעוד חיים · העצמה
+                </p>
+
+                <div className="mt-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-400">מה בפנים — 5 חלקים</p>
+                  <div className="mt-3 space-y-2">
+                    {JOURNAL_CHAPTERS.map((ch) => (
+                      <div key={ch.num} className="rounded-xl bg-white/[0.07] px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-teal-400">{ch.num}</span>
+                          <span className="text-sm font-bold text-white">{ch.title}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs leading-5 text-white/50">{ch.items}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-teal-400/20 bg-teal-400/10 px-4 py-3">
+                  <p className="text-xs leading-6 text-teal-300">
+                    40–60 עמודים · חלקם מוכנים מראש, חלקם למילוי, חלקם לתמונות ושיחות
+                  </p>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {JOURNAL_FOR.map((t) => (
+                    <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                      {t}
+                    </span>
                   ))}
-                </ul>
+                </div>
+
                 <div className="mt-6 flex items-center justify-between gap-4">
                   <p className="text-2xl font-black text-teal-300">{PRODUCTS[1].price}</p>
                   <Link href={PRODUCTS[1].href}>
