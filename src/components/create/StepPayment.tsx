@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge'
 import CreateShell from '@/components/create/CreateShell'
 import { createClient } from '@/lib/supabase/client'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { BOOK_PRICES, DIRECTION_LABELS, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
+import { BOOK_PRICES, DIRECTION_LABELS, JOURNAL_PRICE, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
 
 const nextSteps = [
   'מאשרים את ההזמנה ומתחילים את היצירה.',
@@ -23,14 +23,16 @@ export default function StepPayment() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const price = params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short
-  const totalPagesLabel = params.length ? LENGTH_PAGES[params.length].label : LENGTH_PAGES.short.label
+  const isJournal = params.template === 'emotional_journal'
+  const price = isJournal ? JOURNAL_PRICE : (params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short)
+  const totalPagesLabel = isJournal ? '30 עמודים · 5 פרקים' : (params.length ? LENGTH_PAGES[params.length].label : LENGTH_PAGES.short.label)
   const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
   const estimatedTime = useMemo(() => {
+    if (isJournal) return 'כ-6 דקות'
     if (params.length === 'long') return 'כ-5 דקות'
     if (params.length === 'medium') return 'כ-4 דקות'
     return 'כ-3 דקות'
-  }, [params.length])
+  }, [isJournal, params.length])
 
   useEffect(() => {
     const supabase = createClient()
@@ -114,10 +116,14 @@ export default function StepPayment() {
               <div className="bg-[linear-gradient(180deg,#171925_0%,#10111a_100%)] p-6 text-white lg:p-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-300">Preview</p>
                 <h2 className="mt-4 text-3xl font-black leading-tight">
-                  {mainCharacter ? `הספר של ${mainCharacter}` : 'הספר שלכם'}
+                  {isJournal
+                    ? mainCharacter ? `היומן של ${mainCharacter}` : 'היומן שלכם'
+                    : mainCharacter ? `הספר של ${mainCharacter}` : 'הספר שלכם'}
                 </h2>
                 <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">
-                  ספר מותאם אישית בעברית, עם דמויות אמיתיות, עלילה שנבנית סביב המשפחה שלכם וקובץ PDF מוכן לקריאה.
+                  {isJournal
+                    ? 'יומן העצמה משפחתי עם 5 פרקים, 30 עמודים, שאלות לשיח ואיורים מותאמים אישית.'
+                    : 'ספר מותאם אישית בעברית, עם דמויות אמיתיות, עלילה שנבנית סביב המשפחה שלכם וקובץ PDF מוכן לקריאה.'}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[1.5rem] bg-white/8 p-4">

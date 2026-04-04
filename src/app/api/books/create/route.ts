@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const params: BookParams = body.params
 
-    if (!params.template || !params.length || !params.characters?.length) {
+    if (!params.template || !params.characters?.length) {
+      return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
+    }
+    if (params.template !== 'emotional_journal' && !params.length) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
     }
 
@@ -98,7 +101,11 @@ function buildTitle(params: BookParams) {
     birthday_child: 'יום הולדת שמח ל',
     potty_training: 'הגיבור של הגמילה',
     family_love: 'המשפחה של',
+    emotional_journal: 'היומן של',
   }
   const base = templates[params.template] || 'הספר של'
+  if (params.template === 'emotional_journal') {
+    return mainCharacter ? `היומן של ${mainCharacter.name}` : 'היומן שלי'
+  }
   return mainCharacter ? `${base} ${mainCharacter.name}` : 'הספר שלי'
 }

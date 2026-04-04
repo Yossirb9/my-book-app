@@ -14,6 +14,17 @@ export type BookTemplate =
   | 'self_confidence'
   | 'emotional_journal'
 
+export type JournalPageType =
+  | 'cover'
+  | 'chapter_divider'
+  | 'affirmation'
+  | 'question'
+  | 'growth'
+  | 'memory'
+  | 'photo_placeholder'
+  | 'dream'
+  | 'closing'
+
 export type EmotionalDirection = 'emotional' | 'funny' | 'empowering' | 'adventurous'
 
 export type AgeGroup = '0-2' | '3-5' | '6-8' | '9+'
@@ -50,6 +61,11 @@ export interface BookParams {
   personalDetails?: string
   languageLevel: 'toddler' | 'kindergarten' | 'early_reader'
   includeNikud: boolean
+  // Journal-specific fields (only for emotional_journal template)
+  journalTimePeriod?: 'year' | 'quarter' | 'month'
+  journalChildTraits?: string
+  journalParentMessage?: string
+  journalKeyMoments?: string
 }
 
 export interface BookPage {
@@ -84,6 +100,14 @@ export const BOOK_PRICES: Record<BookLength, number> = {
   short: 89,
   medium: 129,
   long: 159,
+}
+
+export const JOURNAL_PRICE = 199
+
+export const JOURNAL_TIME_LABELS: Record<'year' | 'quarter' | 'month', string> = {
+  year: 'שנה שלמה',
+  quarter: 'רבעון',
+  month: 'חודש',
 }
 
 export const REGEN_LIMITS: Record<'standard' | 'premium', { image: number; text: number }> = {

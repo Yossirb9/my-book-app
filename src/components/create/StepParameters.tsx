@@ -35,7 +35,8 @@ export default function StepParameters() {
   const { nextStep, params, prevStep, setAgeGroup, setDirection, setFormat, setLength } =
     useCreateBookStore()
 
-  const isValid = Boolean(params.emotionalDirection && params.ageGroup && params.length && params.format)
+  const isJournal = params.template === 'emotional_journal'
+  const isValid = Boolean(params.emotionalDirection && params.ageGroup && params.format && (isJournal || params.length))
 
   return (
     <CreateShell
@@ -99,36 +100,52 @@ export default function StepParameters() {
 
         <section className="grid gap-4 2xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <div>
-              <h2 className="text-xl font-black text-[#161625]">אורך הספר</h2>
-              <p className="mt-1 text-sm leading-7 text-gray-500">כאן בוחרים אם זו חוויה קצרה, מאוזנת או רחבה באמת.</p>
-            </div>
-            <div className="grid gap-4">
-              {lengths.map((length) => (
-                <button
-                  key={length.id}
-                  type="button"
-                  onClick={() => setLength(length.id)}
-                  className={cn(
-                    'rounded-[2rem] border p-6 text-right transition-all',
-                    params.length === length.id
-                      ? 'border-coral-300 bg-[linear-gradient(160deg,#fff8f1_0%,#fde7dd_100%)] shadow-[0_22px_40px_rgba(232,124,83,0.14)]'
-                      : 'border-black/5 bg-white shadow-sm hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(23,25,37,0.10)]'
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-2xl font-black text-[#161625]">{length.label}</p>
-                      <p className="mt-1 text-sm text-gray-500">{length.pages}</p>
-                    </div>
-                    <span className="rounded-full bg-[#FFF3E7] px-3 py-1 text-xs font-semibold text-coral-700">
-                      {length.scenes}
-                    </span>
+            {isJournal ? (
+              <div className="rounded-[2rem] border border-[#1a1a2e]/20 bg-[linear-gradient(160deg,#f0f0ff_0%,#e8e8ff_100%)] p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-black text-[#161625]">אורך היומן</h2>
+                    <p className="mt-1 text-sm text-gray-600">יומן מלא — 5 פרקים, 30 עמודים</p>
                   </div>
-                  <p className="mt-4 text-sm leading-7 text-gray-600">הכי מתאים ל־{length.bestFor}.</p>
-                </button>
-              ))}
-            </div>
+                  <span className="rounded-full bg-[#1a1a2e] px-3 py-1.5 text-xs font-bold text-white">
+                    קבוע
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h2 className="text-xl font-black text-[#161625]">אורך הספר</h2>
+                  <p className="mt-1 text-sm leading-7 text-gray-500">כאן בוחרים אם זו חוויה קצרה, מאוזנת או רחבה באמת.</p>
+                </div>
+                <div className="grid gap-4">
+                  {lengths.map((length) => (
+                    <button
+                      key={length.id}
+                      type="button"
+                      onClick={() => setLength(length.id)}
+                      className={cn(
+                        'rounded-[2rem] border p-6 text-right transition-all',
+                        params.length === length.id
+                          ? 'border-coral-300 bg-[linear-gradient(160deg,#fff8f1_0%,#fde7dd_100%)] shadow-[0_22px_40px_rgba(232,124,83,0.14)]'
+                          : 'border-black/5 bg-white shadow-sm hover:-translate-y-1 hover:shadow-[0_22px_40px_rgba(23,25,37,0.10)]'
+                      )}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-2xl font-black text-[#161625]">{length.label}</p>
+                          <p className="mt-1 text-sm text-gray-500">{length.pages}</p>
+                        </div>
+                        <span className="rounded-full bg-[#FFF3E7] px-3 py-1 text-xs font-semibold text-coral-700">
+                          {length.scenes}
+                        </span>
+                      </div>
+                      <p className="mt-4 text-sm leading-7 text-gray-600">הכי מתאים ל־{length.bestFor}.</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="space-y-4">

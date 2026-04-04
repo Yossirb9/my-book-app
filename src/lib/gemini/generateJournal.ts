@@ -1,18 +1,64 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { BookParams } from '@/types'
+import { BookParams, JournalPageType } from '@/types'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-export type JournalPageType = 'affirmation' | 'question' | 'memory' | 'growth' | 'dream'
 
 export interface JournalPage {
   pageNumber: number
   pageType: JournalPageType
-  title: string           // e.g. "מה שאני אוהב בעצמי"
-  prompt: string          // The main text / question / statement on the page
-  sceneDescription: string // For image generation
+  chapterNumber: number
+  chapterTitle: string
+  title: string
+  prompt: string
+  sceneDescription?: string
   charactersInScene: string[]
+  needsImage: boolean
 }
+
+const JOURNAL_STRUCTURE: Array<{
+  pageType: JournalPageType
+  chapterNumber: number
+  chapterTitle: string
+  needsImage: boolean
+}> = [
+  // Page 1: Cover
+  { pageType: 'cover', chapterNumber: 0, chapterTitle: '', needsImage: true },
+  // Chapter 1: מי אני (pages 2–7)
+  { pageType: 'chapter_divider', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: true },
+  { pageType: 'affirmation', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: true },
+  { pageType: 'affirmation', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: true },
+  { pageType: 'affirmation', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: true },
+  { pageType: 'question', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: false },
+  { pageType: 'question', chapterNumber: 1, chapterTitle: 'מי אני', needsImage: false },
+  // Chapter 2: רגעים של גדילה (pages 8–13)
+  { pageType: 'chapter_divider', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: true },
+  { pageType: 'growth', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: true },
+  { pageType: 'growth', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: true },
+  { pageType: 'growth', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: true },
+  { pageType: 'memory', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: false },
+  { pageType: 'memory', chapterNumber: 2, chapterTitle: 'רגעים של גדילה', needsImage: false },
+  // Chapter 3: שיחות עם אמא ואבא (pages 14–19)
+  { pageType: 'chapter_divider', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: true },
+  { pageType: 'question', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: false },
+  { pageType: 'question', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: false },
+  { pageType: 'question', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: false },
+  { pageType: 'question', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: false },
+  { pageType: 'question', chapterNumber: 3, chapterTitle: 'שיחות עם אמא ואבא', needsImage: false },
+  // Chapter 4: תמונות ורגעים (pages 20–24)
+  { pageType: 'chapter_divider', chapterNumber: 4, chapterTitle: 'תמונות ורגעים', needsImage: true },
+  { pageType: 'photo_placeholder', chapterNumber: 4, chapterTitle: 'תמונות ורגעים', needsImage: false },
+  { pageType: 'photo_placeholder', chapterNumber: 4, chapterTitle: 'תמונות ורגעים', needsImage: false },
+  { pageType: 'photo_placeholder', chapterNumber: 4, chapterTitle: 'תמונות ורגעים', needsImage: false },
+  { pageType: 'photo_placeholder', chapterNumber: 4, chapterTitle: 'תמונות ורגעים', needsImage: false },
+  // Chapter 5: העתיד שלי (pages 25–29)
+  { pageType: 'chapter_divider', chapterNumber: 5, chapterTitle: 'העתיד שלי', needsImage: true },
+  { pageType: 'dream', chapterNumber: 5, chapterTitle: 'העתיד שלי', needsImage: true },
+  { pageType: 'dream', chapterNumber: 5, chapterTitle: 'העתיד שלי', needsImage: true },
+  { pageType: 'dream', chapterNumber: 5, chapterTitle: 'העתיד שלי', needsImage: true },
+  { pageType: 'dream', chapterNumber: 5, chapterTitle: 'העתיד שלי', needsImage: true },
+  // Page 30: Closing
+  { pageType: 'closing', chapterNumber: 0, chapterTitle: '', needsImage: true },
+]
 
 export async function generateJournal(params: BookParams): Promise<JournalPage[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
@@ -20,41 +66,72 @@ export async function generateJournal(params: BookParams): Promise<JournalPage[]
   const mainChar = params.characters.find((c) => c.role === 'main')
   const childName = mainChar?.name || params.characters[0]?.name || 'הילד'
   const ageGroup = params.ageGroup
+  const timePeriodLabel =
+    params.journalTimePeriod === 'year'
+      ? 'שנה שלמה'
+      : params.journalTimePeriod === 'quarter'
+        ? 'רבעון'
+        : 'חודש'
 
-  const prompt = `אתה יוצר יומן רגשי-משפחתי מעצים בעברית עבור ילד/ה בשם ${childName}, גיל ${ageGroup}.
-
-היומן נועד לחזק ביטחון עצמי, לעודד שיח בין הורה לילד, ולתעד רגעי גדילה.
-
-צור 18 עמודי יומן מגוונים מהסוגים הבאים:
-- affirmation: משפט חיזוק אישי מעצים על הילד
-- question: שאלה פתוחה לשיח בין ילד להורה
-- memory: הנחיה לתיעוד רגע מיוחד ("כתוב/י או הדבק/י תמונה מהרגע שבו...")
-- growth: "דבר שפעם היה קשה לי ועכשיו אני יכול/ה..."
-- dream: חלום, משאלה או מטרה עתידית של הילד
-
-**פורמט:**
-{
-  "pages": [
-    {
-      "pageNumber": 1,
-      "pageType": "affirmation",
-      "title": "מה שמיוחד בי",
-      "prompt": "אני, ${childName}, ייחודי/ת כי...",
-      "sceneDescription": "תיאור מפורט לאיור: ילד/ה שמח/ה, מסביב ניצנים וכוכבים...",
-      "charactersInScene": ["${childName}"]
-    }
+  const context = [
+    `שם הילד/ה: ${childName}`,
+    `גיל: ${ageGroup}`,
+    `תקופת היומן: ${timePeriodLabel}`,
+    params.journalChildTraits ? `מה מיוחד ב${childName}: ${params.journalChildTraits}` : '',
+    params.journalParentMessage ? `מסר מהורה: ${params.journalParentMessage}` : '',
+    params.journalKeyMoments ? `רגעים חשובים מהתקופה: ${params.journalKeyMoments}` : '',
   ]
-}
+    .filter(Boolean)
+    .join('\n')
 
-**הנחיות:**
-- שמור על מגוון: לפחות 3 מכל סוג
-- שפה: מותאמת לגיל ${ageGroup}
-- טון: חם, מעצים, אוהב
-- כל עמוד ייחודי ומרגש
-- השתמש בשם ${childName} בחלק מהעמודים
-- החזר JSON בלבד`
+  const structureJson = JSON.stringify(
+    JOURNAL_STRUCTURE.map((s, i) => ({
+      pageNumber: i + 1,
+      pageType: s.pageType,
+      chapterNumber: s.chapterNumber,
+      chapterTitle: s.chapterTitle,
+      needsImage: s.needsImage,
+    }))
+  )
 
-  const result = await model.generateContent(prompt)
+  const systemPrompt = `אתה יוצר יומן העצמה משפחתי בעברית. קבל מידע וצור תוכן ל-30 עמודי יומן בדיוק לפי המבנה שניתן.
+
+**מידע על הילד/ה:**
+${context}
+
+**סוגי עמודים ומה לכתוב:**
+- cover: שם היומן (title) + מסר פתיחה חם הכולל את שם הילד (prompt)
+- chapter_divider: שם הפרק (title) + משפט קצר ומחמם על הפרק (prompt)
+- affirmation: כותרת קצרה (title) + משפט מעצים בגוף ראשון על ${childName} (prompt)
+- question: כותרת השאלה (title) + שאלה פתוחה לשיח הורה-ילד (prompt)
+- growth: כותרת (title) + משפט גדילה ומסוגלות להשלמה עצמית (prompt)
+- memory: כותרת (title) + הנחיה לתיעוד רגע מיוחד בכתב או בתמונה (prompt)
+- photo_placeholder: כותרת ליד התמונה (title) + הנחיה קצרה מה להדביק כאן (prompt)
+- dream: כותרת (title) + משפט על חלום או מטרה עתידית (prompt)
+- closing: כותרת סיום (title) + מסר חם לסיום מהמשפחה לילד (prompt)
+
+**sceneDescription**: רק לעמודים עם needsImage=true. תיאור ויזואלי מפורט לאיור בסגנון ריאליסטי וחם — ילד/ה, צבעים, אווירה.
+
+**המבנה לתוכן:**
+${structureJson}
+
+**החזר JSON בלבד — מערך של 30 אובייקטים, ללא markdown:**
+[
+  {
+    "pageNumber": 1,
+    "pageType": "cover",
+    "chapterNumber": 0,
+    "chapterTitle": "",
+    "title": "...",
+    "prompt": "...",
+    "sceneDescription": "...",
+    "charactersInScene": ["${childName}"],
+    "needsImage": true
+  },
+  ...
+]`
+
+  const result = await model.generateContent(systemPrompt)
   const responseText = result.response.text().trim()
 
   const jsonText = responseText
@@ -63,6 +140,6 @@ export async function generateJournal(params: BookParams): Promise<JournalPage[]
     .replace(/\s*```$/i, '')
     .trim()
 
-  const parsed = JSON.parse(jsonText)
-  return parsed.pages as JournalPage[]
+  const pages = JSON.parse(jsonText) as JournalPage[]
+  return pages
 }

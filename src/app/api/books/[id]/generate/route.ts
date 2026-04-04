@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { generatePageImage } from '@/lib/gemini/generateImage'
 import { generateStory } from '@/lib/gemini/generateStory'
+import { generateJournal, JournalPage } from '@/lib/gemini/generateJournal'
 import { BookParams } from '@/types'
 
 export const maxDuration = 300
@@ -66,7 +67,10 @@ export async function POST(
     await supabase.from('books').update({ status: 'generating' }).eq('id', bookId)
 
     const bookParams = book.params as unknown as BookParams
-    const pages = await generateStory(bookParams)
+    const isJournal = bookParams.template === 'emotional_journal'
+
+    const journalPages = isJournal ? await generateJournal(bookParams) : null
+    const storyPages = isJournal ? null : await generateStory(bookParams)
 
     const characterImageBase64s = await Promise.all(
       book.characters.map(async (character: { name: string; image_url?: string | null }) => {
@@ -84,48 +88,66 @@ export async function POST(
       })
     ).then((results) => results.filter(Boolean) as { name: string; base64: string; mimeType: string }[])
 
+    const pagesToProcess = journalPages || storyPages!
+
     await Promise.all(
-      pages.map(async (page) => {
+      pagesToProcess.map(async (page) => {
+        const needsImage = 'needsImage' in page ? (page as JournalPage).needsImage : true
         let imageUrl: string | undefined
 
-        for (let attempt = 1; attempt <= 2; attempt++) {
-          try {
-            const imageBuffer = await generatePageImage(
-              page.sceneDescription,
-              bookParams.characters,
-              bookParams,
-              characterImageBase64s,
-              page.charactersInScene
-            )
+        if (needsImage) {
+          const sceneDesc = page.sceneDescription
+          if (sceneDesc) {
+            for (let attempt = 1; attempt <= 2; attempt++) {
+              try {
+                const imageBuffer = await generatePageImage(
+                  sceneDesc,
+                  bookParams.characters,
+                  bookParams,
+                  characterImageBase64s,
+                  page.charactersInScene
+                )
 
-            const filePath = `books/${bookId}/page-${page.pageNumber}.jpg`
-            const { error: uploadError } = await supabase.storage
-              .from('book-images')
-              .upload(filePath, imageBuffer, { contentType: 'image/jpeg', upsert: true })
+                const filePath = `books/${bookId}/page-${page.pageNumber}.jpg`
+                const { error: uploadError } = await supabase.storage
+                  .from('book-images')
+                  .upload(filePath, imageBuffer, { contentType: 'image/jpeg', upsert: true })
 
-            if (!uploadError) {
-              const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
-              imageUrl = urlData.publicUrl
+                if (!uploadError) {
+                  const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
+                  imageUrl = urlData.publicUrl
+                }
+
+                break
+              } catch (imageError) {
+                console.error(`Image generation attempt ${attempt} failed for page ${page.pageNumber}:`, imageError)
+              }
             }
-
-            break
-          } catch (imageError) {
-            console.error(`Image generation attempt ${attempt} failed for page ${page.pageNumber}:`, imageError)
           }
         }
+
+        const metadata = journalPages
+          ? {
+              pageType: (page as JournalPage).pageType,
+              chapterNumber: (page as JournalPage).chapterNumber,
+              chapterTitle: (page as JournalPage).chapterTitle,
+              title: (page as JournalPage).title,
+            }
+          : null
 
         await supabase.from('book_pages').insert({
           book_id: bookId,
           page_number: page.pageNumber,
-          text: page.text,
+          text: journalPages ? (page as JournalPage).prompt : (page as { text: string }).text,
           image_url: imageUrl,
           image_prompt: page.sceneDescription,
+          metadata,
         })
       })
     )
 
-    const pdfDigitalUrl = await generateBookPDF(bookId, pages, 'digital')
-    const pdfPrintUrl = await generateBookPDF(bookId, pages, 'print')
+    const pdfDigitalUrl = await generateBookPDF(bookId, pagesToProcess, 'digital')
+    const pdfPrintUrl = await generateBookPDF(bookId, pagesToProcess, 'print')
 
     await supabase
       .from('books')
@@ -146,7 +168,8 @@ export async function POST(
 
 async function generateBookPDF(
   bookId: string,
-  pages: { pageNumber: number; text: string }[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  pages: any[],
   type: 'digital' | 'print'
 ) {
   try {
