@@ -6,26 +6,6 @@ import { useEffect, useRef } from 'react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 
-const VALUE_PILLARS = [
-  {
-    eyebrow: 'זה מרגיש כמו הילד שלכם',
-    title: 'האיורים מכירים את הפנים שלו.',
-    description:
-      'הסיפור נבנה סביב האנשים האמיתיים שלכם — השם, הפנים, הטון והרגע המשפחתי. לא דמות גנרית. ילד בעל שם.',
-  },
-  {
-    eyebrow: 'אתם יודעים מה יקרה',
-    title: 'אין קפיצה עיוורת ישר ליצירה.',
-    description:
-      'לפני שמתחילים רואים מה מעלים, מה מקבלים, כמה זמן זה לוקח ואיך התוצאה תיראה, כך שהחוויה מרגישה בטוחה וברורה.',
-  },
-  {
-    eyebrow: 'יוצאים עם משהו שאפשר לתת',
-    title: 'יוצאים עם ספר שאפשר באמת לתת, לקרוא ולשמור.',
-    description:
-      'בסוף מקבלים ספר קריא ונעים בעברית, עם קובץ PDF מוכן למסך או להדפסה, בלי להסתבך עם עריכה או עימוד.',
-  },
-]
 
 const HOW_IT_WORKS = [
   {
@@ -232,31 +212,6 @@ export default function HomePageContent() {
           </div>
         </section>
 
-        <section className="relative z-10 bg-transparent">
-          <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
-            <div className="mb-10 max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-600">למה זה מרגיש אחרת</p>
-              <h2 className="mt-3 text-3xl font-black leading-tight text-[#1a1a2e] md:text-4xl">
-                ספר שנולד מהפנים שלו, מהשם שלו, ומהרגע שלכם.
-              </h2>
-              <p className="mt-4 max-w-2xl text-base leading-8 text-gray-700">
-                כי כשילד מחזיק ספר שהוא הגיבור שלו — ספר שמכיר את הפנים שלו ואת שמו — הוא לא מניח אותו.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {VALUE_PILLARS.map((pillar) => (
-                <div
-                  key={pillar.title}
-                  className="rounded-[2rem] border border-white/70 bg-white/78 p-6 shadow-sm backdrop-blur-md"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">{pillar.eyebrow}</p>
-                  <h3 className="mt-4 text-2xl font-black leading-9 text-[#1a1a2e]">{pillar.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-gray-700">{pillar.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
       </div>
 
       <section id="how-it-works" className="border-y border-coral-100 bg-white/70">
