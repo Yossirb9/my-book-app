@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 
@@ -73,152 +72,80 @@ const FAQ = [
 ]
 
 export default function HomePageContent() {
-  const videoFrameRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const frame = videoFrameRef.current
-    const video = videoRef.current
-
-    if (!frame || !video) {
-      return
-    }
-
-    let rafId = 0
-
-    const updateVideoProgress = () => {
-      rafId = 0
-
-      if (!video.duration || Number.isNaN(video.duration)) {
-        return
-      }
-
-      const rect = frame.getBoundingClientRect()
-      const totalTravel = rect.height + window.innerHeight
-      const progressed = window.innerHeight - rect.top
-      const progress = Math.min(Math.max(progressed / totalTravel, 0), 1)
-      const targetTime = progress * video.duration
-
-      if (Math.abs(video.currentTime - targetTime) > 0.033) {
-        video.currentTime = targetTime
-      }
-    }
-
-    const requestSync = () => {
-      if (rafId) {
-        return
-      }
-
-      rafId = window.requestAnimationFrame(updateVideoProgress)
-    }
-
-    const handleMetadata = () => {
-      video.pause()
-      requestSync()
-    }
-
-    video.addEventListener('loadedmetadata', handleMetadata)
-    window.addEventListener('scroll', requestSync, { passive: true })
-    window.addEventListener('resize', requestSync)
-    requestSync()
-
-    return () => {
-      video.removeEventListener('loadedmetadata', handleMetadata)
-      window.removeEventListener('scroll', requestSync)
-      window.removeEventListener('resize', requestSync)
-      if (rafId) {
-        window.cancelAnimationFrame(rafId)
-      }
-    }
-  }, [])
-
   return (
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
-      <div ref={videoFrameRef} className="relative isolate">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="sticky top-0 h-screen">
-            <video
-              ref={videoRef}
-              className="absolute inset-0 h-full w-full object-cover opacity-80 saturate-[0.88]"
-              src="/home-scroll-background.mp4"
-              muted
-              playsInline
-              preload="auto"
-              aria-hidden="true"
+      <section className="border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_left,rgba(232,124,83,0.13),transparent_40%),linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
+        <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:px-8 md:py-20">
+          <div className="max-w-2xl">
+            <Badge variant="popular" className="mb-4 border-amber-200 bg-amber-100/90">
+              הילד שלכם — הגיבור של הסיפור
+            </Badge>
+            <h1 className="max-w-3xl text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
+              ספר ילדים שהוא לא על ילד כלשהו — הוא על הילד שלכם.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-gray-700 md:text-lg">
+              אתם מספרים לנו מי הילד שלכם, מי האנשים שהוא אוהב, ומה הרגע המשפחתי שרוצים להנציח. אנחנו מחזירים ספר
+              ילדים בעברית, עם איורים שמכירים את הפנים שלו, מוכן לקריאה ולמתנה.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/create">
+                <Button size="lg" className="sm:w-auto">
+                  צרו את הספר שלכם
+                </Button>
+              </Link>
+              <Link href="/#how-it-works">
+                <Button variant="outline" size="lg" className="border-coral-400/90 bg-white/55 sm:w-auto">
+                  ראו איך זה עובד
+                </Button>
+              </Link>
+            </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">3-5</p>
+                <p className="mt-1 text-sm text-gray-700">דקות, וספר שלם בידיים שלכם</p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">אישי</p>
+                <p className="mt-1 text-sm text-gray-700">כל ספר נכתב סביב הילד שלכם — השם, הפנים, הסיפור</p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">מוכן</p>
+                <p className="mt-1 text-sm text-gray-700">לקריאה ביחד, לשמור, ולתת במתנה</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-center">
+            <Image
+              src="/1.png"
+              alt="ילדה בתוך ספר קסום"
+              width={1536}
+              height={1024}
+              priority
+              className="w-full h-auto drop-shadow-2xl"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,249,240,0.68)_0%,rgba(255,245,233,0.52)_28%,rgba(255,249,240,0.82)_100%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(232,124,83,0.24),_transparent_32%),radial-gradient(circle_at_left_center,_rgba(255,255,255,0.52),_transparent_36%)]" />
           </div>
         </div>
-
-        <section className="relative z-10 overflow-hidden border-b border-coral-100/80 bg-transparent">
-          <div className="mx-auto grid max-w-7xl gap-12 px-4 py-12 md:grid-cols-[1.05fr_0.95fr] md:px-8 md:py-20">
-            <div className="max-w-2xl">
-              <Badge variant="popular" className="mb-4 border-white/60 bg-amber-100/90 backdrop-blur-sm">
-                הילד שלכם — הגיבור של הסיפור
-              </Badge>
-              <h1 className="max-w-3xl text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
-                ספר ילדים שהוא לא על ילד כלשהו — הוא על הילד שלכם.
-              </h1>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-gray-700 md:text-lg">
-                אתם מספרים לנו מי הילד שלכם, מי האנשים שהוא אוהב, ומה הרגע המשפחתי שרוצים להנציח. אנחנו מחזירים ספר
-                ילדים בעברית, עם איורים שמכירים את הפנים שלו, מוכן לקריאה ולמתנה.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/create">
-                  <Button size="lg" className="sm:w-auto">
-                    צרו את הספר שלכם
-                  </Button>
-                </Link>
-                <Link href="/#sample-preview">
-                  <Button variant="outline" size="lg" className="border-coral-400/90 bg-white/55 backdrop-blur-sm sm:w-auto">
-                    ראו ספר לדוגמה
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1.75rem] border border-white/70 bg-white/72 p-4 shadow-sm backdrop-blur-md">
-                  <p className="text-2xl font-black text-coral-700">3-5</p>
-                  <p className="mt-1 text-sm text-gray-700">דקות, וספר שלם בידיים שלכם</p>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/70 bg-white/72 p-4 shadow-sm backdrop-blur-md">
-                  <p className="text-2xl font-black text-coral-700">אישי</p>
-                  <p className="mt-1 text-sm text-gray-700">כל ספר נכתב סביב הילד שלכם — השם, הפנים, הסיפור</p>
-                </div>
-                <div className="rounded-[1.75rem] border border-white/70 bg-white/72 p-4 shadow-sm backdrop-blur-md">
-                  <p className="text-2xl font-black text-coral-700">מוכן</p>
-                  <p className="mt-1 text-sm text-gray-700">לקריאה ביחד, לשמור, ולתת במתנה</p>
-                </div>
-              </div>
-            </div>
-
-            <div id="sample-preview" className="flex items-center">
-              <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,245,233,0.94))] p-4 shadow-[0_30px_80px_rgba(232,124,83,0.16)] backdrop-blur-md">
-                <div className="pointer-events-none absolute inset-x-10 top-8 h-20 rounded-full bg-[#ffd9bf]/60 blur-3xl" />
-                <div className="relative rounded-[2rem] bg-[#fff8ef] p-3">
-                  <Image
-                    src="/hero-child-reading.svg"
-                    alt="איור של ילד מחזיק ספר"
-                    width={920}
-                    height={920}
-                    priority
-                    className="h-auto w-full rounded-[1.6rem]"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </div>
+      </section>
 
       <section id="how-it-works" className="border-y border-coral-100 bg-white/70">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
-          <div className="mb-8 max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">איך זה עובד</p>
-            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">רואים את הדרך מראש, לא מנחשים תוך כדי.</h2>
+          <div className="mb-8 flex items-end gap-6">
+            <div className="flex-1">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">איך זה עובד</p>
+              <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">רואים את הדרך מראש, לא מנחשים תוך כדי.</h2>
+            </div>
+            <div className="hidden md:block w-56 flex-shrink-0">
+              <Image
+                src="/2.png"
+                alt="ילדה גיבורת-על על עננים"
+                width={560}
+                height={373}
+                className="w-full h-auto object-contain object-right"
+              />
+            </div>
           </div>
           <div className="grid gap-4 md:grid-cols-4">
             {HOW_IT_WORKS.map((step, index) => (
