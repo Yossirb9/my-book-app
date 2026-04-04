@@ -1,13 +1,24 @@
-import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import './globals.css'
 import Navbar from '@/components/ui/Navbar'
+import { siteMetadata } from '@/lib/metadata'
+import { createClient } from '@/lib/supabase/server'
 
-export const metadata: Metadata = {
-  title: 'הספר שלי — ספרים מותאמים אישית עם AI',
-  description: 'צרו ספר ילדים מאויר עם הדמויות שלכם',
-}
+export const metadata = siteMetadata
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  let isAuthenticated = false
+
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    isAuthenticated = Boolean(user)
+  } catch {
+    isAuthenticated = false
+  }
+
   return (
     <html lang="he" dir="rtl">
       <head>
@@ -15,10 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-dvh">
-        <Navbar />
-        <div className="mobile-container">
-          {children}
-        </div>
+        <Navbar initialIsAuthenticated={isAuthenticated} />
+        <div className="mobile-container">{children}</div>
       </body>
     </html>
   )

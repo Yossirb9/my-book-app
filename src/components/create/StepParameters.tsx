@@ -1,151 +1,172 @@
 'use client'
-import { useCreateBookStore } from '@/store/createBookStore'
+
 import Button from '@/components/ui/Button'
 import { StepProgress } from '@/components/ui/StepProgress'
 import { cn } from '@/lib/utils'
-import { EmotionalDirection, AgeGroup, BookLength, BookFormat } from '@/types'
+import { useCreateBookStore } from '@/store/createBookStore'
+import { AgeGroup, BookFormat, BookLength, EmotionalDirection } from '@/types'
+
+const directions: { id: EmotionalDirection; label: string; hint: string }[] = [
+  { id: 'emotional', label: 'מרגש ועדין', hint: 'מתאים לסיפורים עם לב, קירבה ומסר רגשי.' },
+  { id: 'funny', label: 'קליל ומשפחתי', hint: 'טון שובב, מחויך וכזה שכיף לקרוא יחד.' },
+  { id: 'empowering', label: 'מעצים ובטוח', hint: 'לרגעים שבהם רוצים לחזק מסוגלות וביטחון.' },
+  { id: 'adventurous', label: 'הרפתקני ודמיוני', hint: 'יותר תנועה, גילוי ותחושת מסע.' },
+]
+
+const ageGroups: { id: AgeGroup; label: string; hint: string }[] = [
+  { id: '0-2', label: '0-2', hint: 'משפטים קצרים וקצב עדין' },
+  { id: '3-5', label: '3-5', hint: 'הקראה ביתית עם שפה פשוטה' },
+  { id: '6-8', label: '6-8', hint: 'יותר עלילה ויותר טקסט' },
+  { id: '9+', label: '9+', hint: 'לילדים שמוכנים לסיפור עשיר' },
+]
+
+const lengths: { id: BookLength; label: string; pages: string; bestFor: string; scenes: string }[] = [
+  { id: 'short', label: 'קצר', pages: '8-12 עמודים', bestFor: 'מתנה קלילה או סיפור לפני השינה', scenes: '4-5 סצנות מרכזיות' },
+  { id: 'medium', label: 'בינוני', pages: '16-20 עמודים', bestFor: 'הבחירה המאוזנת לרוב המשפחות', scenes: '6-8 סצנות עם יותר עומק' },
+  { id: 'long', label: 'ארוך', pages: '24-32 עמודים', bestFor: 'חוויה מלאה עם עלילה עשירה יותר', scenes: '9-12 סצנות מפורטות' },
+]
+
+const formats: { id: BookFormat; label: string; hint: string }[] = [
+  { id: 'square', label: 'פורמט מרובע', hint: 'נוח למסך ולמתנה אישית.' },
+  { id: 'portrait', label: 'פורמט לאורך', hint: 'מרגיש כמו ספר ילדים קלאסי להדפסה.' },
+]
 
 export default function StepParameters() {
-  const { nextStep, prevStep, params, setDirection, setAgeGroup, setLength, setFormat } =
+  const { nextStep, params, prevStep, setAgeGroup, setDirection, setFormat, setLength } =
     useCreateBookStore()
 
-  const directions: { id: EmotionalDirection; label: string }[] = [
-    { id: 'emotional', label: '🥹 מרגש ומיוחד' },
-    { id: 'funny', label: '😄 מצחיק ומשפחתי' },
-    { id: 'empowering', label: '💪 מעצים לגיבור' },
-    { id: 'adventurous', label: '🌈 הרפתקני-דמיוני' },
-  ]
-
-  const ageGroups: { id: AgeGroup; label: string }[] = [
-    { id: '0-2', label: 'פעוטות 0-2' },
-    { id: '3-5', label: 'גן 3-5' },
-    { id: '6-8', label: 'בית ספר 6-8' },
-    { id: '9+', label: 'גדולים 9+' },
-  ]
-
-  const lengths: { id: BookLength; label: string; pages: string; extra: string }[] = [
-    { id: 'short', label: 'קצר', pages: '8–12 עמ׳', extra: '' },
-    { id: 'medium', label: 'בינוני', pages: '16–20 עמ׳', extra: '+₪40' },
-    { id: 'long', label: 'ארוך', pages: '24–32 עמ׳', extra: '+₪70' },
-  ]
-
-  const formats: { id: BookFormat; label: string; desc: string }[] = [
-    { id: 'square', label: 'ריבוע', desc: '20×20 ס"מ' },
-    { id: 'portrait', label: 'לאורך', desc: 'A4' },
-  ]
-
-  const isValid = params.emotionalDirection && params.ageGroup && params.length && params.format
+  const isValid = Boolean(params.emotionalDirection && params.ageGroup && params.length && params.format)
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <div className="flex items-center justify-between px-4 pt-8 pb-4">
-        <button onClick={prevStep} className="text-gray-400 text-sm">← חזרה</button>
-        <StepProgress currentStep={2} totalSteps={5} />
-        <div className="w-10" />
+    <div className="flex min-h-dvh flex-col">
+      <div className="flex items-start justify-between gap-4 px-4 pt-7 pb-5 md:px-6">
+        <button type="button" onClick={prevStep} className="pt-1 text-sm font-medium text-gray-500 hover:text-gray-800">
+          חזרה
+        </button>
+        <StepProgress currentStep={2} />
+        <div className="w-12" />
       </div>
 
-      <div className="px-4 pb-4">
-        <h2 className="text-xl font-bold text-gray-800">הגדרות הספר</h2>
+      <div className="px-4 pb-6 md:px-6">
+        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">איך הספר ירגיש?</h1>
+        <p className="mt-2 text-sm leading-6 text-gray-600 md:text-base">
+          כאן אנחנו קובעים את האופי של הסיפור: הטון, גיל היעד, האורך והפורמט הסופי שתקבלו.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-5 px-4 pb-24">
-        {/* Emotional Direction */}
-        <div>
-          <p className="font-semibold text-gray-700 mb-2">הכיוון הרגשי</p>
-          <div className="grid grid-cols-2 gap-2">
-            {directions.map((d) => (
+      <div className="space-y-6 px-4 pb-28 md:px-6">
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-bold text-gray-900">טון רגשי</h2>
+            <p className="text-sm text-gray-500">בחרו איך הספר צריך להרגיש כשהוא נקרא בקול.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {directions.map((direction) => (
               <button
-                key={d.id}
-                onClick={() => setDirection(d.id)}
+                key={direction.id}
+                type="button"
+                onClick={() => setDirection(direction.id)}
                 className={cn(
-                  'py-2.5 px-3 rounded-xl text-sm font-medium border-2 transition-all text-right',
-                  params.emotionalDirection === d.id
-                    ? 'border-coral-500 bg-coral-50 text-coral-700'
-                    : 'border-gray-100 bg-white text-gray-600 hover:border-coral-200'
+                  'rounded-[2rem] border-2 p-4 text-right transition-all',
+                  params.emotionalDirection === direction.id
+                    ? 'border-coral-500 bg-coral-50 shadow-md shadow-coral-100'
+                    : 'border-white bg-white shadow-sm hover:border-coral-200'
                 )}
               >
-                {d.label}
+                <p className="font-bold text-gray-900">{direction.label}</p>
+                <p className="mt-1 text-sm leading-6 text-gray-500">{direction.hint}</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Age Group */}
-        <div>
-          <p className="font-semibold text-gray-700 mb-2">גיל היעד</p>
-          <div className="grid grid-cols-4 gap-2">
-            {ageGroups.map((a) => (
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-bold text-gray-900">גיל היעד</h2>
+            <p className="text-sm text-gray-500">כך נתאים את רמת השפה, אורך המשפטים והקצב.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {ageGroups.map((group) => (
               <button
-                key={a.id}
-                onClick={() => setAgeGroup(a.id)}
+                key={group.id}
+                type="button"
+                onClick={() => setAgeGroup(group.id)}
                 className={cn(
-                  'py-2 px-1 rounded-xl text-xs font-medium border-2 transition-all text-center',
-                  params.ageGroup === a.id
-                    ? 'border-coral-500 bg-coral-50 text-coral-700'
-                    : 'border-gray-100 bg-white text-gray-600'
+                  'rounded-[1.75rem] border-2 p-4 text-right transition-all',
+                  params.ageGroup === group.id
+                    ? 'border-coral-500 bg-coral-50 shadow-md shadow-coral-100'
+                    : 'border-white bg-white shadow-sm hover:border-coral-200'
                 )}
               >
-                {a.label}
+                <p className="font-bold text-gray-900">{group.label}</p>
+                <p className="mt-1 text-sm leading-6 text-gray-500">{group.hint}</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Book Length */}
-        <div>
-          <p className="font-semibold text-gray-700 mb-2">אורך הספר</p>
-          <div className="grid grid-cols-3 gap-2">
-            {lengths.map((l) => (
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-bold text-gray-900">אורך הספר</h2>
+            <p className="text-sm text-gray-500">זה מה שישפיע בעיקר על עומק העלילה וכמות הסצנות.</p>
+          </div>
+          <div className="grid gap-3">
+            {lengths.map((length) => (
               <button
-                key={l.id}
-                onClick={() => setLength(l.id)}
+                key={length.id}
+                type="button"
+                onClick={() => setLength(length.id)}
                 className={cn(
-                  'py-3 px-2 rounded-xl text-center border-2 transition-all',
-                  params.length === l.id
-                    ? 'border-coral-500 bg-coral-50'
-                    : 'border-gray-100 bg-white'
+                  'rounded-[2rem] border-2 p-5 text-right transition-all',
+                  params.length === length.id
+                    ? 'border-coral-500 bg-coral-50 shadow-md shadow-coral-100'
+                    : 'border-white bg-white shadow-sm hover:border-coral-200'
                 )}
               >
-                <p className={cn('font-bold text-sm', params.length === l.id ? 'text-coral-700' : 'text-gray-700')}>
-                  {l.label}
-                </p>
-                <p className="text-xs text-gray-400">{l.pages}</p>
-                {l.extra && <p className="text-xs text-coral-500 font-semibold">{l.extra}</p>}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">{length.label}</p>
+                    <p className="text-sm text-gray-500">{length.pages}</p>
+                  </div>
+                  <span className="rounded-full bg-[#FFF9F0] px-3 py-1 text-xs font-semibold text-gray-700">
+                    {length.scenes}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-gray-600">הכי מתאים ל־{length.bestFor}.</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Format */}
-        <div>
-          <p className="font-semibold text-gray-700 mb-2">פורמט הספר</p>
-          <div className="grid grid-cols-2 gap-2">
-            {formats.map((f) => (
+        <section>
+          <div className="mb-3">
+            <h2 className="text-base font-bold text-gray-900">פורמט סופי</h2>
+            <p className="text-sm text-gray-500">הפורמט קובע איך הספר יראה במסך ובקובץ להדפסה.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {formats.map((format) => (
               <button
-                key={f.id}
-                onClick={() => setFormat(f.id)}
+                key={format.id}
+                type="button"
+                onClick={() => setFormat(format.id)}
                 className={cn(
-                  'py-3 px-3 rounded-xl text-center border-2 transition-all flex flex-col items-center gap-1',
-                  params.format === f.id
-                    ? 'border-coral-500 bg-coral-50'
-                    : 'border-gray-100 bg-white'
+                  'rounded-[2rem] border-2 p-5 text-right transition-all',
+                  params.format === format.id
+                    ? 'border-coral-500 bg-coral-50 shadow-md shadow-coral-100'
+                    : 'border-white bg-white shadow-sm hover:border-coral-200'
                 )}
               >
-                <span className="text-2xl">{f.id === 'square' ? '⬛' : '📄'}</span>
-                <p className={cn('font-semibold text-sm', params.format === f.id ? 'text-coral-700' : 'text-gray-700')}>
-                  {f.label}
-                </p>
-                <p className="text-xs text-gray-400">{f.desc}</p>
+                <p className="font-bold text-gray-900">{format.label}</p>
+                <p className="mt-1 text-sm leading-6 text-gray-500">{format.hint}</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Fixed Next Button */}
-      <div className="fixed bottom-0 inset-x-0 max-w-[430px] mx-auto px-4 pb-6 pt-3 bg-gradient-to-t from-[#FFF9F0] to-transparent">
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-[640px] bg-gradient-to-t from-[#FFF9F0] via-[#FFF9F0] px-4 pt-4 pb-6 md:px-6">
         <Button size="lg" onClick={nextStep} disabled={!isValid}>
-          המשך ›
+          המשיכו לדמויות
         </Button>
       </div>
     </div>

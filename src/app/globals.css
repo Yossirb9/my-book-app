@@ -5,15 +5,15 @@
   --background: #FFF9F0;
   --foreground: #1a1a2e;
 
-  /* Coral palette */
-  --coral-50: #fff1f0;
-  --coral-100: #ffe0dc;
-  --coral-200: #ffc5bd;
-  --coral-300: #ff9e91;
-  --coral-400: #ff7b6b;
-  --coral-500: #FF6B6B;
-  --coral-600: #e84f4f;
-  --coral-700: #c33838;
+  /* Coral palette — unified around #e87c53 */
+  --coral-50: #fef3ed;
+  --coral-100: #fde8de;
+  --coral-200: #f9c9b0;
+  --coral-300: #f5a882;
+  --coral-400: #ef8a61;
+  --coral-500: #e87c53;
+  --coral-600: #d4693e;
+  --coral-700: #b04f2b;
 
   /* Peach */
   --peach-300: #ffd49e;
@@ -49,6 +49,11 @@
 
 * {
   direction: rtl;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -75,7 +80,22 @@ body {
 
 /* Wizard/book pages: always constrained to mobile width */
 .wizard-page {
-  max-width: 430px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100dvh;
+}
+
+@media (max-width: 767px) {
+  .wizard-page {
+    max-width: 430px;
+    margin: 0 auto;
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

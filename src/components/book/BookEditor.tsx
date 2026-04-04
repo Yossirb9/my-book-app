@@ -1,7 +1,7 @@
 'use client'
+
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 
 interface Page {
   id: string
@@ -20,7 +20,15 @@ interface Book {
 
 type EditMode = 'text' | 'image' | 'prompt'
 
-export default function BookEditor({ book, pages }: { book: Book; pages: Page[] }) {
+export default function BookEditor({
+  book,
+  pages,
+  onPagesChange,
+}: {
+  book: Book
+  pages: Page[]
+  onPagesChange?: (pages: Page[]) => void
+}) {
   const [selectedPage, setSelectedPage] = useState<Page | null>(null)
   const [editMode, setEditMode] = useState<EditMode | null>(null)
   const [editText, setEditText] = useState('')
@@ -30,6 +38,11 @@ export default function BookEditor({ book, pages }: { book: Book; pages: Page[] 
   const [imageRegen, setImageRegen] = useState(book.image_regenerations_left)
   const [textRegen, setTextRegen] = useState(book.text_regenerations_left)
   const [localPages, setLocalPages] = useState(pages)
+
+  const updatePages = (updatedPages: Page[]) => {
+    setLocalPages(updatedPages)
+    onPagesChange?.(updatedPages)
+  }
 
   const openEdit = (page: Page, mode: EditMode) => {
     setSelectedPage(page)
@@ -41,22 +54,23 @@ export default function BookEditor({ book, pages }: { book: Book; pages: Page[] 
 
   const handleSaveText = async () => {
     if (!selectedPage) return
+
     setLoading(true)
     try {
-      const res = await fetch(`/api/books/${book.id}/page/${selectedPage.id}/text`, {
+      const response = await fetch(`/api/books/${book.id}/page/${selectedPage.id}/text`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: editText }),
       })
-      if (!res.ok) throw new Error('שגיאה')
-      setLocalPages((prev) =>
-        prev.map((p) => (p.id === selectedPage.id ? { ...p, text: editText } : p))
-      )
-      setTextRegen((n) => n - 1)
-      setMessage('הטקסט עודכן בהצלחה ✅')
+
+      if (!response.ok) throw new Error('שמירת הטקסט נכשלה.')
+
+      updatePages(localPages.map((page) => (page.id === selectedPage.id ? { ...page, text: editText } : page)))
+      setTextRegen((value) => value - 1)
+      setMessage('הטקסט עודכן בהצלחה.')
       setEditMode(null)
     } catch {
-      setMessage('שגיאה בשמירה')
+      setMessage('לא הצלחנו לשמור את הטקסט.')
     } finally {
       setLoading(false)
     }
@@ -64,191 +78,191 @@ export default function BookEditor({ book, pages }: { book: Book; pages: Page[] 
 
   const handleRegenImage = async () => {
     if (!selectedPage) return
+
     setLoading(true)
     try {
-      const res = await fetch(`/api/books/${book.id}/page/${selectedPage.id}/regenerate-image`, {
+      const response = await fetch(`/api/books/${book.id}/page/${selectedPage.id}/regenerate-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: editMode === 'prompt' ? editPrompt : undefined }),
       })
-      if (!res.ok) throw new Error('שגיאה')
-      const data = await res.json()
-      setLocalPages((prev) =>
-        prev.map((p) => (p.id === selectedPage.id ? { ...p, image_url: data.imageUrl } : p))
+
+      if (!response.ok) throw new Error('יצירת התמונה נכשלה.')
+      const data = await response.json()
+
+      updatePages(
+        localPages.map((page) =>
+          page.id === selectedPage.id ? { ...page, image_url: data.imageUrl, image_prompt: editPrompt || page.image_prompt } : page
+        )
       )
-      setImageRegen((n) => n - 1)
-      setMessage('התמונה עודכנה בהצלחה ✅')
+      setImageRegen((value) => value - 1)
+      setMessage('התמונה הוחלפה בהצלחה.')
       setEditMode(null)
     } catch {
-      setMessage('שגיאה בייצור תמונה')
+      setMessage('לא הצלחנו ליצור תמונה חדשה כרגע.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex flex-col min-h-dvh bg-[#FFF9F0]">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-8 pb-4">
-        <Link href={`/book/${book.id}`} className="text-gray-400 text-sm">← חזרה לספר</Link>
-        <h2 className="font-bold text-gray-800">עריכת הספר</h2>
-        <div className="w-16" />
-      </div>
-
-      {/* Regen Counter */}
-      <div className="mx-4 bg-peach-300/40 rounded-2xl p-3 mb-4">
-        <p className="text-sm font-semibold text-gray-700 mb-1">תיקונים שנותרו:</p>
-        <div className="flex gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm">🎨</span>
-            <span className="text-sm text-gray-600">תמונות: <strong>{imageRegen}/3</strong></span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm">✏️</span>
-            <span className="text-sm text-gray-600">טקסט: <strong>{textRegen}/3</strong></span>
-          </div>
+    <div className="flex flex-col pb-8" dir="rtl">
+      <div className="mx-4 mt-4 rounded-[2rem] border border-coral-100 bg-coral-50 p-4">
+        <p className="text-sm font-semibold text-gray-900">מה חשוב לדעת לפני עריכה?</p>
+        <p className="mt-2 text-sm leading-6 text-gray-600">
+          שינוי טקסט שומר את הנוסח החדש במקום הקיים. יצירת תמונה מחדש מחליפה את התמונה הנוכחית, ואין כרגע היסטוריית גרסאות לחזרה אחורה.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-700">
+          <span className="rounded-full bg-white px-3 py-1 font-semibold">עריכות טקסט שנותרו: {textRegen}</span>
+          <span className="rounded-full bg-white px-3 py-1 font-semibold">עריכות תמונה שנותרו: {imageRegen}</span>
         </div>
       </div>
 
-      {/* Page Grid */}
-      <div className="px-4 mb-4">
-        <p className="font-semibold text-gray-700 mb-2">בחרו עמוד לעריכה</p>
+      <div className="px-4 pt-5">
+        <p className="mb-3 text-sm font-semibold text-gray-900">בחרו עמוד לעריכה</p>
         <div className="grid grid-cols-3 gap-2">
           {localPages.map((page) => (
             <button
               key={page.id}
               onClick={() => setSelectedPage(page)}
               className={cn(
-                'aspect-square rounded-xl overflow-hidden border-2 transition-all relative',
-                selectedPage?.id === page.id
-                  ? 'border-coral-500 shadow-md'
-                  : 'border-gray-100'
+                'relative aspect-square overflow-hidden rounded-2xl border-2 transition-all',
+                selectedPage?.id === page.id ? 'border-coral-500 shadow-md shadow-coral-100' : 'border-gray-100'
               )}
             >
               {page.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={page.image_url} alt={`עמוד ${page.page_number}`} className="w-full h-full object-cover" />
+                <img src={page.image_url} alt={`עמוד ${page.page_number}`} className="h-full w-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-coral-50 to-peach-300/30 flex items-center justify-center text-2xl">
-                  📄
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-coral-50 to-orange-100 text-sm font-semibold text-gray-500">
+                  עמוד {page.page_number}
                 </div>
               )}
-              <div className="absolute bottom-0 inset-x-0 bg-black/40 py-0.5">
-                <p className="text-white text-xs text-center">{page.page_number}</p>
-              </div>
-              {selectedPage?.id === page.id && (
-                <div className="absolute top-1 right-1 bg-coral-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  ✓
-                </div>
-              )}
+              <div className="absolute inset-x-0 bottom-0 bg-black/45 py-1 text-xs text-white">{page.page_number}</div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Edit Actions for selected page */}
-      {selectedPage && (
-        <div className="mx-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <p className="font-semibold text-gray-700 mb-3">עמוד {selectedPage.page_number} נבחר</p>
+      {selectedPage ? (
+        <div className="mx-4 mt-4 rounded-[2rem] border border-white bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">עמוד {selectedPage.page_number}</p>
+              <p className="text-xs text-gray-500">בחרו פעולה אחת ברורה לכל שינוי.</p>
+            </div>
+            <span className="rounded-full bg-[#FFF9F0] px-3 py-1 text-xs font-semibold text-coral-700">
+              ללא היסטוריה
+            </span>
+          </div>
 
-          {/* Current text preview */}
-          <p className="text-sm text-gray-500 mb-3 bg-gray-50 rounded-xl p-2 text-right">
-            {selectedPage.text}
-          </p>
+          <div className="rounded-[1.5rem] bg-gray-50 p-3 text-sm leading-7 text-gray-600">{selectedPage.text}</div>
 
-          <div className="flex flex-col gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             <button
               onClick={() => openEdit(selectedPage, 'text')}
               disabled={textRegen <= 0}
-              className="w-full py-2.5 border-2 border-coral-200 rounded-xl text-coral-600 font-medium text-sm hover:bg-coral-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-2xl border-2 border-coral-200 px-4 py-3 text-sm font-semibold text-coral-700 transition-colors hover:bg-coral-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              ✏️ ערוך טקסט ({textRegen} נותרו)
+              עריכת טקסט ({textRegen} נותרו)
             </button>
             <button
               onClick={() => openEdit(selectedPage, 'image')}
               disabled={imageRegen <= 0}
-              className="w-full py-2.5 border-2 border-purple-200 rounded-xl text-purple-600 font-medium text-sm hover:bg-purple-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-2xl border-2 border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              🎨 צור תמונה מחדש ({imageRegen} נותרו)
+              יצירת תמונה מחדש ({imageRegen} נותרו)
             </button>
             <button
               onClick={() => openEdit(selectedPage, 'prompt')}
               disabled={imageRegen <= 0}
-              className="w-full py-2.5 border-2 border-gray-200 rounded-xl text-gray-600 font-medium text-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-2xl border-2 border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              🔧 שנה הנחיה לתמונה
+              שינוי הנחיה לתמונה
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {message && (
-        <div className="mx-4 mt-3 bg-green-50 border border-green-200 rounded-xl p-3 text-center text-sm text-green-700">
+      {message ? (
+        <div className="mx-4 mt-4 rounded-[1.5rem] bg-green-50 px-4 py-3 text-center text-sm text-green-700">
           {message}
         </div>
-      )}
+      ) : null}
 
-      {/* Edit Modal */}
-      {editMode && selectedPage && (
-        <div className="fixed inset-0 bg-black/50 flex items-end z-50">
-          <div className="w-full max-w-[430px] mx-auto bg-white rounded-t-3xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-800">
-                {editMode === 'text' ? 'עריכת טקסט' : editMode === 'image' ? 'יצירת תמונה מחדש' : 'שינוי הנחיה'}
-              </h3>
-              <button onClick={() => setEditMode(null)} className="text-gray-400 text-xl">✕</button>
+      {editMode && selectedPage ? (
+        <div className="fixed inset-0 z-[60] flex items-end bg-black/50">
+          <div className="w-full max-w-md rounded-t-[2rem] bg-white p-6" dir="rtl">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {editMode === 'text'
+                    ? 'עריכת טקסט'
+                    : editMode === 'image'
+                    ? 'יצירת תמונה מחדש'
+                    : 'שינוי הנחיה לתמונה'}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {editMode === 'text'
+                    ? 'הטקסט החדש יחליף את הטקסט הקיים בעמוד הזה.'
+                    : 'התמונה החדשה תחליף את התמונה הקיימת, ללא גרסת גיבוי.'}
+                </p>
+              </div>
+              <button onClick={() => setEditMode(null)} className="text-2xl text-gray-400 hover:text-gray-700">
+                ×
+              </button>
             </div>
 
             {editMode === 'text' ? (
               <>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-right focus:outline-none focus:border-coral-400 resize-none"
+                  onChange={(event) => setEditText(event.target.value)}
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-coral-400"
                 />
                 <button
                   onClick={handleSaveText}
                   disabled={loading}
-                  className="w-full mt-3 bg-coral-500 text-white py-3 rounded-full font-semibold disabled:opacity-50"
+                  className="mt-4 w-full rounded-full bg-coral-500 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {loading ? 'שומר...' : 'שמור שינויים'}
+                  {loading ? 'שומרים...' : 'שמרו טקסט חדש'}
                 </button>
               </>
             ) : editMode === 'prompt' ? (
               <>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={editPrompt}
-                  onChange={(e) => setEditPrompt(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-right focus:outline-none focus:border-coral-400 resize-none"
-                  placeholder="תאר את הסצנה שתרצה לצייר..."
+                  onChange={(event) => setEditPrompt(event.target.value)}
+                  placeholder="תארו מה חשוב שיראה בתמונה החדשה: מיקום, הבעה, צבעוניות, סצנה."
+                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-700 outline-none focus:border-coral-400"
                 />
                 <button
                   onClick={handleRegenImage}
                   disabled={loading}
-                  className="w-full mt-3 bg-purple-500 text-white py-3 rounded-full font-semibold disabled:opacity-50"
+                  className="mt-4 w-full rounded-full bg-coral-500 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {loading ? 'מצייר...' : 'צור תמונה חדשה'}
+                  {loading ? 'מכינים תמונה...' : 'צרו תמונה חדשה'}
                 </button>
               </>
             ) : (
               <>
-                <p className="text-sm text-gray-500 mb-3">
-                  התמונה הנוכחית תוחלף בתמונה חדשה עם אותה הנחיה מקורית.
+                <p className="text-sm leading-7 text-gray-600">
+                  בלחיצה הבאה ניצור תמונה חדשה על בסיס ההנחיה הקיימת ונחליף את התמונה הנוכחית בעמוד זה.
                 </p>
                 <button
                   onClick={handleRegenImage}
                   disabled={loading}
-                  className="w-full bg-purple-500 text-white py-3 rounded-full font-semibold disabled:opacity-50"
+                  className="mt-4 w-full rounded-full bg-coral-500 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  {loading ? 'מצייר...' : '🎨 צור תמונה מחדש'}
+                  {loading ? 'מכינים תמונה...' : 'החליפו את התמונה'}
                 </button>
               </>
             )}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

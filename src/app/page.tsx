@@ -1,232 +1,297 @@
 import Link from 'next/link'
+import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import { buildMetadata } from '@/lib/metadata'
+
+export const metadata = buildMetadata({
+  title: 'ספרי ילדים אישיים עם AI',
+  description:
+    'ספרי ילדים מותאמים אישית בעברית עם דמויות אמיתיות, תהליך יצירה מודרך, תצוגת אישור לפני יצירה ו-PDF להורדה.',
+})
+
+const HIGHLIGHTS = [
+  {
+    title: 'הדמויות שלכם נשארות במרכז',
+    description: 'מעלים תמונה אחת טובה לכל דמות, והספר נבנה סביב האנשים האמיתיים של המשפחה.',
+  },
+  {
+    title: 'מבינים מה מקבלים לפני שמתחילים יצירה',
+    description: 'המערכת מציגה סיכום ברור, זמן יצירה משוער ומה כלול, עוד לפני שהספר יוצא לדרך.',
+  },
+]
 
 const FEATURES = [
-  { icon: '📸', title: 'דמויות אמיתיות', desc: 'ה-AI מצייר את הדמויות לפי תמונות אמיתיות שתעלו' },
-  { icon: '🤖', title: 'AI חכם', desc: 'סיפור עשיר בעברית, מותאם לגיל ולנושא שבחרתם' },
-  { icon: '⚡', title: 'מוכן תוך דקות', desc: 'כל הספר — סיפור ואיורים — נוצר אוטומטית תוך 3-5 דקות' },
-  { icon: '🎨', title: 'איכות פרימיום', desc: 'איורים ברמה מקצועית, מותאמים לסגנון שבחרתם' },
-  { icon: '📥', title: 'PDF להורדה', desc: 'קובץ דיגיטלי וקובץ מוכן להדפסה בבית או בדפוס' },
-  { icon: '🇮🇱', title: 'בעברית מלאה', desc: 'ממשק, סיפור וניקוד — הכל בעברית מושלמת' },
+  'ספר ילדים אישי בעברית מלאה',
+  'PDF דיגיטלי וקובץ נוח להדפסה',
+  'תהליך יצירה מודרך שלב אחר שלב',
+  'עריכות בסיסיות לאחר היצירה',
 ]
 
 const HOW_IT_WORKS = [
-  { num: '1', title: 'בחרו סוג ספר', desc: 'אח חדש, יום הולדת, גמילה, אהבת משפחה' },
-  { num: '2', title: 'הוסיפו דמויות', desc: 'העלו תמונה אמיתית לכל דמות' },
-  { num: '3', title: 'התאימו אישית', desc: 'מסר, גיל, סגנון וכיוון רגשי' },
-  { num: '4', title: 'קבלו ספר מוגמר', desc: 'PDF להורדה ולהדפסה מיד' },
+  {
+    title: 'בוחרים נושא',
+    description: 'מתחילים מתבנית ספר שמתאימה לרגע המשפחתי: יום הולדת, אח חדש, פחד מהחושך ועוד.',
+  },
+  {
+    title: 'מוסיפים דמויות ותמונה אחת לכל דמות',
+    description: 'שם, תפקיד ותמונה ברורה אחת הם כל מה שצריך כדי שהאיור ירגיש אישי ואמין.',
+  },
+  {
+    title: 'מגדירים טון, מסר ופרטים אישיים',
+    description: 'כאן מוסיפים את הלב של הסיפור: המסר, הקשר המשפחתי והפרטים הקטנים שעושים את ההבדל.',
+  },
+  {
+    title: 'מאשרים ומחכים כמה דקות',
+    description: 'המערכת כותבת, מאיירת ומכינה PDF. אחר כך אפשר לקרוא, להוריד ולבצע עריכות בסיסיות.',
+  },
 ]
 
 const PRICING = [
-  { title: 'קצר', pages: '10 עמודים', price: 89, desc: 'מושלם לסיפור קצר וממוקד' },
-  { title: 'בינוני', pages: '18 עמודים', price: 109, desc: 'הספר הפופולרי ביותר', popular: true },
-  { title: 'ארוך', pages: '28 עמודים', price: 129, desc: 'חוויה מלאה ועשירה' },
+  {
+    title: 'קצר',
+    price: '₪89',
+    pages: '8-12 עמודים',
+    bestFor: 'מתנה קלילה, סיפור לפני השינה או ספר ראשון.',
+    details: '4-5 סצנות מרכזיות, קצב מהיר ותוצר שנעים לקרוא יחד.',
+  },
+  {
+    title: 'בינוני',
+    price: '₪129',
+    pages: '16-20 עמודים',
+    bestFor: 'הבחירה המאוזנת לרוב המשפחות.',
+    details: '6-8 סצנות עם יותר עומק רגשי ועלילה יותר מפותחת.',
+    badge: 'הכי נבחר',
+  },
+  {
+    title: 'ארוך',
+    price: '₪159',
+    pages: '24-32 עמודים',
+    bestFor: 'כשרוצים חוויה מלאה ומתנה עשירה יותר.',
+    details: '9-12 סצנות, יותר עולם, יותר רגעים, יותר עומק.',
+  },
 ]
 
-const TESTIMONIALS = [
-  { name: 'שירה כ.', text: 'הבן שלי לא הפסיק לדרוש שנקרא לו שוב ושוב. הוא לא מאמין שהוא הגיבור!', stars: 5 },
-  { name: 'מיכל ר.', text: 'קנינו כמתנת יום הולדת לבת שלנו. ה-AI הצליח לצייר אותה מדויק להפליא!', stars: 5 },
-  { name: 'דני א.', text: 'תוצאה מדהימה. הספר נראה מקצועי לגמרי, כאילו קנינו בחנות.', stars: 5 },
+const FAQ = [
+  {
+    question: 'האם חייבים להתחבר לפני שמתחילים?',
+    answer:
+      'לא. אפשר למלא את כל שלבי היצירה, ורק לפני ההתחלה בפועל נבקש להתחבר כדי לשמור את הספר על החשבון שלכם.',
+  },
+  {
+    question: 'כמה תמונות צריך להעלות?',
+    answer: 'כרגע תמונה ברורה אחת לכל דמות מספיקה. עדיף פנים גלויות ותאורה טובה.',
+  },
+  {
+    question: 'כמה זמן לוקח עד שהספר מוכן?',
+    answer: 'ברוב המקרים הספר מוכן בתוך כ-3 עד 5 דקות, בהתאם לאורך שבחרתם.',
+  },
+  {
+    question: 'מה קורה עם התמונות שאנחנו מעלים?',
+    answer:
+      'התמונות משמשות רק ליצירת הספר האישי שלכם. אנחנו מציגים את זה כבר בתהליך כדי להוריד אי-ודאות ולחזק אמון.',
+  },
 ]
 
 export default function HomePage() {
   return (
-    <main className="min-h-dvh bg-[#FFF9F0]">
-
-      {/* ── MOBILE HEADER (hidden on desktop, Navbar takes over) ── */}
-      <header className="md:hidden flex items-center justify-center px-4 pt-10 pb-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">✨</span>
-          <h1 className="text-2xl font-bold text-coral-500">הספר שלי</h1>
-        </div>
-      </header>
-
-      {/* ── HERO ── */}
-      <section className="bg-[#FFF9F0]">
-        {/* Mobile hero */}
-        <div className="md:hidden flex flex-col items-center px-5 pt-6 pb-8 text-center">
-          <div className="text-7xl mb-4">📖</div>
-          <h2 className="text-2xl font-bold text-gray-800 leading-snug mb-2">
-            הספר שיספר<br />את הסיפור שלכם
-          </h2>
-          <p className="text-gray-500 text-base mb-6">ספר ילדים מאויר עם הדמויות האמיתיות שלכם</p>
-          <Link href="/create" className="w-full">
-            <Button size="lg" className="text-lg py-4">✨ צרו ספר עכשיו</Button>
-          </Link>
-        </div>
-
-        {/* Desktop hero */}
-        <div className="hidden md:flex max-w-7xl mx-auto px-8 py-20 items-center gap-16">
-          <div className="flex-1 text-right">
-            <div className="inline-flex items-center gap-2 bg-coral-50 border border-coral-100 rounded-full px-4 py-1.5 text-sm text-coral-600 font-medium mb-6">
-              ✨ מופעל על ידי AI מתקדם
-            </div>
-            <h1 className="text-5xl font-black text-gray-800 leading-tight mb-6">
-              הספר שהילד שלך<br />
-              <span className="text-coral-500">ייזכר לתמיד</span>
+    <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
+      <section className="relative overflow-hidden border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_right,_rgba(232,124,83,0.16),_transparent_32%),linear-gradient(180deg,#fffaf3_0%,#fff4e6_100%)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-4 py-12 md:grid-cols-[1.05fr_0.95fr] md:px-8 md:py-20">
+          <div className="max-w-2xl">
+            <Badge variant="popular" className="mb-4">
+              ספר ילדים אישי בעברית עם תהליך ברור מקצה לקצה
+            </Badge>
+            <h1 className="max-w-3xl text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
+              ספר שמרגיש כמו מתנה אמיתית, ולא כמו עוד גימיק.
             </h1>
-            <p className="text-xl text-gray-500 mb-8 leading-relaxed">
-              ספרי ילדים מאויירים עם הדמויות האמיתיות שלכם.<br />
-              AI מתקדם יוצר סיפור בעברית ואיורים תוך דקות.
+            <p className="mt-5 max-w-2xl text-base leading-8 text-gray-600 md:text-lg">
+              מעלים דמויות אמיתיות, בוחרים נושא, מגדירים מסר, ומקבלים ספר ילדים אישי בעברית עם PDF מוכן לקריאה ולהורדה.
             </p>
-            <div className="flex items-center gap-4">
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/create">
-                <button className="bg-coral-500 hover:bg-coral-600 text-white font-black text-lg px-8 py-4 rounded-2xl transition-colors shadow-lg shadow-coral-200">
-                  🎨 צרו את הספר שלכם
-                </button>
+                <Button size="lg" className="sm:w-auto">
+                  צרו את הספר שלכם
+                </Button>
               </Link>
-              <div className="text-sm text-gray-400">מ-₪89 בלבד</div>
+              <Link href="/#sample-preview">
+                <Button variant="outline" size="lg" className="sm:w-auto">
+                  ראו ספר לדוגמה
+                </Button>
+              </Link>
             </div>
-            <div className="flex items-center gap-6 mt-8">
-              {['500+ משפחות', '⭐⭐⭐⭐⭐ דירוג', '30 יום החזר'].map((b) => (
-                <span key={b} className="text-sm text-gray-500 flex items-center gap-1">✓ {b}</span>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.75rem] border border-white/90 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">3-5</p>
+                <p className="mt-1 text-sm text-gray-600">דקות ליצירה ממוצעת</p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/90 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">עברית</p>
+                <p className="mt-1 text-sm text-gray-600">טקסט, UI וזרימה מלאה בעברית</p>
+              </div>
+              <div className="rounded-[1.75rem] border border-white/90 bg-white/80 p-4 shadow-sm">
+                <p className="text-2xl font-black text-coral-700">PDF</p>
+                <p className="mt-1 text-sm text-gray-600">קריאה במסך וקובץ נוח להדפסה</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="sample-preview" className="grid gap-4">
+            <div className="rounded-[2.25rem] border border-[#f0d7c5] bg-[#1a1a2e] p-5 text-white shadow-[0_30px_70px_rgba(26,26,46,0.18)]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-coral-200">ספר לדוגמה</p>
+                  <h2 className="mt-2 text-2xl font-black">הספר של נועה</h2>
+                </div>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                  תצוגה פתוחה
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <article className="rounded-[1.75rem] bg-[#fffaf3] p-4 text-right text-gray-900">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-coral-600">עמוד פתיחה</p>
+                  <h3 className="mt-3 text-lg font-black leading-8">נועה הרגישה שהיום הזה הולך להיות שונה.</h3>
+                  <p className="mt-3 text-sm leading-7 text-gray-600">
+                    היום שבו האח הקטן מגיע הביתה. יש התרגשות, קצת בלבול, והמון מקום ללב גדול.
+                  </p>
+                </article>
+                <article className="relative min-h-[15rem] overflow-hidden rounded-[1.75rem] bg-[linear-gradient(160deg,#eaa880_0%,#e87c53_40%,#b04f2b_100%)] p-4">
+                  <div className="absolute left-4 top-4 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                    איור מותאם אישית
+                  </div>
+                  <div className="absolute inset-4 rounded-[1.5rem] border border-white/20" />
+                  <div className="absolute bottom-4 right-4 left-4 rounded-[1.5rem] bg-white/18 p-4 text-white backdrop-blur">
+                    <p className="text-sm font-semibold">מבוסס על דמויות אמיתיות מהמשפחה</p>
+                    <p className="mt-1 text-xs leading-6 text-white/75">אמא, נועה והתינוק החדש נכנסים לעלילה כאילו נכתבה עבורם מהיום הראשון.</p>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {HIGHLIGHTS.map((highlight) => (
+                <article key={highlight.title} className="rounded-[1.75rem] border border-white bg-white/90 p-5 shadow-sm">
+                  <h3 className="text-lg font-black text-gray-900">{highlight.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-gray-600">{highlight.description}</p>
+                </article>
               ))}
             </div>
           </div>
-          <div className="flex-shrink-0 w-96 h-96 bg-gradient-to-br from-coral-100 via-peach-300 to-coral-200 rounded-3xl flex items-center justify-center shadow-xl">
-            <div className="text-center">
-              <div className="text-9xl mb-4">📖</div>
-              <p className="text-coral-600 font-bold text-lg">ספר ילדים אישי</p>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* ── MOBILE TRUST BADGES ── */}
-      <section className="md:hidden flex gap-2 px-4 pb-6 overflow-x-auto no-scrollbar">
-        {['🎨 דמויות דומות למקור', '📖 סיפור בעברית', '🖨️ מוכן להדפסה'].map((badge) => (
-          <span key={badge} className="shrink-0 px-3 py-1.5 bg-white rounded-full text-sm text-gray-600 shadow-sm border border-gray-100 whitespace-nowrap">
-            {badge}
-          </span>
-        ))}
-      </section>
-
-      {/* ── FEATURES GRID (desktop) ── */}
-      <section id="features" className="hidden md:block bg-white py-20">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-3xl font-black text-gray-800 text-center mb-3">למה הספר שלי?</h2>
-          <p className="text-gray-400 text-center mb-12">הכלי הכי מתקדם ליצירת ספרי ילדים אישיים</p>
-          <div className="grid grid-cols-3 gap-6">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="bg-[#FFF9F0] rounded-2xl p-6 text-right">
-                <div className="text-3xl mb-3">{f.icon}</div>
-                <h3 className="font-bold text-gray-800 text-lg mb-1">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
+      <section className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+        <div className="mb-8 max-w-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">למה זה מרגיש אחרת</p>
+          <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">פחות טופס, יותר מסע בטוח וברור.</h2>
         </div>
-      </section>
-
-      {/* ── MOBILE HOW IT WORKS ── */}
-      <section className="md:hidden px-4 pb-8">
-        <h3 className="font-bold text-gray-700 text-lg mb-4">איך זה עובד?</h3>
-        <div className="flex flex-col gap-3">
-          {HOW_IT_WORKS.map((step) => (
-            <div key={step.num} className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-full bg-coral-500 text-white flex items-center justify-center font-bold text-sm shrink-0">{step.num}</div>
-              <div>
-                <p className="font-semibold text-gray-800">{step.title}</p>
-                <p className="text-sm text-gray-500">{step.desc}</p>
-              </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          {FEATURES.map((feature) => (
+            <div key={feature} className="rounded-[1.75rem] border border-white bg-white p-5 shadow-sm">
+              <p className="text-base font-semibold leading-7 text-gray-700">{feature}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── HOW IT WORKS (desktop) ── */}
-      <section id="how" className="hidden md:block py-20 bg-[#FFF9F0]">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-3xl font-black text-gray-800 text-center mb-12">איך זה עובד?</h2>
-          <div className="grid grid-cols-4 gap-8">
-            {HOW_IT_WORKS.map((step, i) => (
-              <div key={step.num} className="text-center relative">
-                {i < HOW_IT_WORKS.length - 1 && (
-                  <div className="absolute top-8 left-0 w-full h-0.5 bg-coral-100 -z-10" />
-                )}
-                <div className="w-16 h-16 rounded-full bg-coral-500 text-white flex items-center justify-center font-black text-2xl mx-auto mb-4 shadow-lg shadow-coral-200">
-                  {step.num}
+      <section id="how-it-works" className="border-y border-coral-100 bg-white/70">
+        <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">איך זה עובד</p>
+            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">רואים את הדרך מראש, לא מנחשים תוך כדי.</h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {HOW_IT_WORKS.map((step, index) => (
+              <article key={step.title} className="rounded-[1.9rem] border border-coral-100 bg-[#FFF9F0] p-5 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-coral-500 text-sm font-black text-white">
+                  {index + 1}
                 </div>
-                <h3 className="font-bold text-gray-800 text-lg mb-2">{step.title}</h3>
-                <p className="text-gray-500 text-sm">{step.desc}</p>
-              </div>
+                <h3 className="mt-4 text-lg font-black text-gray-900">{step.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-gray-600">{step.description}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── PRICING (desktop) ── */}
-      <section id="pricing" className="hidden md:block py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-3xl font-black text-gray-800 text-center mb-3">תמחור פשוט</h2>
-          <p className="text-gray-400 text-center mb-12">ללא דמי מנוי — משלמים פעם אחת לכל ספר</p>
-          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-            {PRICING.map((plan) => (
-              <div key={plan.title} className={`rounded-2xl p-6 text-right border-2 relative ${plan.popular ? 'border-coral-500 bg-coral-50 shadow-lg shadow-coral-100' : 'border-gray-100 bg-white'}`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 right-1/2 translate-x-1/2 bg-coral-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    הכי פופולרי ⭐
-                  </div>
-                )}
-                <h3 className="font-black text-xl text-gray-800 mb-1">{plan.title}</h3>
-                <p className="text-gray-400 text-sm mb-4">{plan.pages}</p>
-                <div className="text-4xl font-black text-coral-500 mb-1">₪{plan.price}</div>
-                <p className="text-gray-500 text-sm mb-6">{plan.desc}</p>
-                <Link href="/create">
-                  <button className={`w-full py-3 rounded-xl font-bold text-sm transition-colors ${plan.popular ? 'bg-coral-500 text-white hover:bg-coral-600' : 'border-2 border-coral-500 text-coral-500 hover:bg-coral-50'}`}>
-                    בחרו תוכנית זו
-                  </button>
-                </Link>
+      <section id="pricing" className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+        <div className="mb-8 max-w-2xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">מחירים</p>
+          <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">שלוש חבילות, עם ציפייה ברורה לכל אחת.</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {PRICING.map((plan) => (
+            <article
+              key={plan.title}
+              className={`rounded-[2rem] border p-6 shadow-sm ${
+                plan.badge ? 'border-coral-200 bg-coral-50 shadow-coral-100/70' : 'border-white bg-white'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-2xl font-black text-gray-900">{plan.title}</p>
+                  <p className="mt-1 text-sm text-gray-500">{plan.pages}</p>
+                </div>
+                {plan.badge ? <Badge variant="popular">{plan.badge}</Badge> : null}
               </div>
+              <p className="mt-4 text-4xl font-black text-coral-700">{plan.price}</p>
+              <p className="mt-4 text-sm font-semibold text-gray-900">Best for: {plan.bestFor}</p>
+              <p className="mt-2 text-sm leading-7 text-gray-600">{plan.details}</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs text-gray-600">
+                <span className="rounded-full bg-white/80 px-3 py-1">ספר בעברית מלאה</span>
+                <span className="rounded-full bg-white/80 px-3 py-1">PDF להורדה</span>
+                <span className="rounded-full bg-white/80 px-3 py-1">עריכות בסיסיות</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="border-y border-coral-100 bg-[#fff4e7]">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 md:grid-cols-[0.95fr_1.05fr] md:px-8 md:py-16">
+          <article className="rounded-[2rem] border border-white bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">Trust Layer</p>
+            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">מה הורים צריכים לדעת לפני שמתחילים.</h2>
+            <ul className="mt-6 space-y-4 text-sm leading-7 text-gray-600">
+              <li>התמונות משמשות ליצירת הספר האישי שלכם בלבד.</li>
+              <li>התהליך מציג ציפייה ברורה: מה מעלים, כמה זמן מחכים, ומה מקבלים בסוף.</li>
+              <li>אחרי שהספר מוכן אפשר לקרוא, להוריד PDF ולבצע עריכות בסיסיות.</li>
+            </ul>
+          </article>
+
+          <div id="faq" className="space-y-4">
+            {FAQ.map((item) => (
+              <article key={item.question} className="rounded-[2rem] border border-white bg-white p-6 shadow-sm">
+                <h3 className="text-lg font-black text-gray-900">{item.question}</h3>
+                <p className="mt-2 text-sm leading-7 text-gray-600">{item.answer}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── TESTIMONIALS (desktop) ── */}
-      <section className="hidden md:block py-20 bg-[#FFF9F0]">
-        <div className="max-w-7xl mx-auto px-8">
-          <h2 className="text-3xl font-black text-gray-800 text-center mb-12">מה אומרים ההורים?</h2>
-          <div className="grid grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-right">
-                <div className="flex gap-0.5 mb-3">{'⭐'.repeat(t.stars)}</div>
-                <p className="text-gray-700 leading-relaxed mb-4">"{t.text}"</p>
-                <p className="font-bold text-gray-800 text-sm">{t.name}</p>
-              </div>
-            ))}
+      <section className="bg-[#1a1a2e]">
+        <div className="mx-auto max-w-5xl px-4 py-14 text-center md:px-8 md:py-20">
+          <h2 className="text-3xl font-black text-white md:text-5xl">מוכנים להתחיל ספר שירגיש באמת שלכם?</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/70 md:text-base">
+            אפשר להתחיל בלי להתחבר, למלא את כל הפרטים, ולבקש מאיתנו להתחיל את היצירה רק כשאתם מרגישים בטוחים.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/create">
+              <Button size="lg" className="sm:w-auto">
+                התחילו ליצור
+              </Button>
+            </Link>
+            <Link href="/#faq">
+              <Button variant="outline" size="lg" className="border-white/40 bg-transparent text-white hover:bg-white/10 sm:w-auto">
+                קראו עוד לפני שמתחילים
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
-
-      {/* ── BOTTOM CTA ── */}
-      <section className="py-12 md:py-20 bg-coral-500 text-center">
-        <div className="max-w-2xl mx-auto px-6">
-          <h2 className="text-2xl md:text-4xl font-black text-white mb-4">מוכנים ליצור את הספר?</h2>
-          <p className="text-coral-100 mb-8 text-sm md:text-base">הצטרפו ל-500+ משפחות שכבר יצרו ספרים מיוחדים</p>
-          <Link href="/create">
-            <button className="bg-white text-coral-500 font-black text-lg px-10 py-4 rounded-2xl hover:bg-coral-50 transition-colors shadow-lg">
-              🎁 צרו ספר עכשיו — מ-₪89
-            </button>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── FOOTER (desktop) ── */}
-      <footer className="hidden md:block bg-gray-900 text-gray-400 py-10">
-        <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
-          <div className="text-gray-500 text-sm">© 2026 הספר שלי. כל הזכויות שמורות.</div>
-          <div className="flex items-center gap-2 text-white font-bold">
-            <span>📖</span>
-            <span>הספר שלי</span>
-          </div>
-          <div className="flex gap-6 text-sm">
-            <Link href="/#how" className="hover:text-white transition-colors">איך זה עובד</Link>
-            <Link href="/#pricing" className="hover:text-white transition-colors">תמחור</Link>
-            <Link href="/login" className="hover:text-white transition-colors">כניסה</Link>
-          </div>
-        </div>
-      </footer>
     </main>
   )
 }

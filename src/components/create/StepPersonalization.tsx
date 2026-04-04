@@ -1,121 +1,118 @@
 'use client'
-import { useCreateBookStore } from '@/store/createBookStore'
+
 import Button from '@/components/ui/Button'
+import { Input, Textarea } from '@/components/ui/Input'
 import { StepProgress } from '@/components/ui/StepProgress'
 import { cn } from '@/lib/utils'
+import { useCreateBookStore } from '@/store/createBookStore'
+
+const languageLevels = [
+  { id: 'toddler' as const, label: 'פעוטות', hint: 'קצב רגוע ומשפטים קצרים מאוד' },
+  { id: 'kindergarten' as const, label: 'גן', hint: 'שפה ביתית וקריאה זורמת בהקראה' },
+  { id: 'early_reader' as const, label: 'ראשית קריאה', hint: 'טקסט עשיר יותר לילדים גדולים יותר' },
+]
 
 export default function StepPersonalization() {
-  const { nextStep, prevStep, params, setPersonalization } = useCreateBookStore()
-
-  const languageLevels = [
-    { id: 'toddler' as const, label: 'פעוטות 0-2' },
-    { id: 'kindergarten' as const, label: 'גן 3-5' },
-    { id: 'early_reader' as const, label: 'ראשית קריאה 6+' },
-  ]
-
-  const isValid = params.relationship
+  const { nextStep, params, prevStep, setPersonalization } = useCreateBookStore()
+  const isValid = Boolean(params.relationship?.trim())
 
   return (
-    <div className="flex flex-col min-h-dvh">
-      <div className="flex items-center justify-between px-4 pt-8 pb-4">
-        <button onClick={prevStep} className="text-gray-400 text-sm">← חזרה</button>
-        <StepProgress currentStep={4} totalSteps={5} />
-        <div className="w-10" />
+    <div className="flex min-h-dvh flex-col">
+      <div className="flex items-start justify-between gap-4 px-4 pt-7 pb-5 md:px-6">
+        <button type="button" onClick={prevStep} className="pt-1 text-sm font-medium text-gray-500 hover:text-gray-800">
+          חזרה
+        </button>
+        <StepProgress currentStep={4} />
+        <div className="w-12" />
       </div>
 
-      <div className="px-4 pb-4">
-        <h2 className="text-xl font-bold text-gray-800">ספרו לנו עוד</h2>
-        <p className="text-sm text-gray-500 mt-1">הפרטים האלה יהפכו את הספר לאישי באמת</p>
+      <div className="px-4 pb-6 md:px-6">
+        <h1 className="text-2xl font-black text-gray-900 md:text-3xl">מה חשוב שייכנס לסיפור?</h1>
+        <p className="mt-2 text-sm leading-6 text-gray-600 md:text-base">
+          כאן אתם מוסיפים את הלב של הספר: הקשר בין הדמויות, המסר שתרצו להעביר והפרטים הקטנים שהופכים את התוצאה לשלכם.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 pb-24">
-        {/* Relationship */}
-        <div>
-          <label className="block font-semibold text-gray-700 mb-1.5 text-sm">
-            מה הקשר בין הדמויות? <span className="text-coral-500">*</span>
-          </label>
-          <input
-            type="text"
-            placeholder="לדוגמה: אחות גדולה ואח תינוק"
-            value={params.relationship || ''}
-            onChange={(e) => setPersonalization({ relationship: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-coral-400 text-right bg-white"
-          />
-        </div>
+      <div className="space-y-5 px-4 pb-28 md:px-6">
+        <Input
+          label="מה הקשר בין הדמויות?"
+          placeholder="למשל: אחות גדולה ואח קטן, ילדה וסבא, שני אחים עם כלב"
+          value={params.relationship || ''}
+          onChange={(event) => setPersonalization({ relationship: event.target.value })}
+          helperText="המידע הזה ישפיע על הקשר, השפה והאינטראקציה בסיפור."
+          required
+        />
 
-        {/* Message */}
-        <div>
-          <label className="block font-semibold text-gray-700 mb-1.5 text-sm">
-            מה המסר שתרצו להעביר?
-          </label>
-          <textarea
-            rows={3}
-            placeholder="לדוגמה: שתהיה לך שנה מלאת הרפתקות..."
-            value={params.desiredMessage || ''}
-            onChange={(e) => setPersonalization({ desiredMessage: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-coral-400 text-right bg-white resize-none"
-          />
-        </div>
+        <Textarea
+          label="איזה מסר תרצו שהספר יעביר?"
+          rows={4}
+          placeholder="למשל: שגם כשיש שינוי בבית, תמיד נשאר מקום לאהבה, ביטחון והומור."
+          value={params.desiredMessage || ''}
+          onChange={(event) => setPersonalization({ desiredMessage: event.target.value })}
+          helperText="לא חובה, אבל מאוד עוזר לנו לדייק את הלב של העלילה."
+        />
 
-        {/* Personal Details */}
-        <div>
-          <label className="block font-semibold text-gray-700 mb-1.5 text-sm">
-            פרטים אישיים נוספים (אופציונלי)
-          </label>
-          <textarea
-            rows={3}
-            placeholder="גיל, תחביבים, חיות מחמד, דברים אהובים..."
-            value={params.personalDetails || ''}
-            onChange={(e) => setPersonalization({ personalDetails: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-coral-400 text-right bg-white resize-none"
-          />
-          <p className="text-xs text-gray-400 mt-1 text-left">{(params.personalDetails || '').length}/200</p>
-        </div>
+        <Textarea
+          label="פרטים אישיים שנרצה לשלב"
+          rows={4}
+          placeholder="תחביבים, חיות מחמד, בדיחות פנימיות, פחדים קטנים, מאכל אהוב, מקום אהוב, או כל פרט שיגרום לסיפור להרגיש אמיתי."
+          value={params.personalDetails || ''}
+          onChange={(event) => setPersonalization({ personalDetails: event.target.value })}
+          helperText={`${(params.personalDetails || '').length}/200`}
+          maxLength={200}
+        />
 
-        {/* Language Level */}
-        <div>
-          <p className="font-semibold text-gray-700 mb-2 text-sm">רמת שפה</p>
-          <div className="grid grid-cols-3 gap-2">
-            {languageLevels.map((l) => (
+        <section className="rounded-[2rem] border border-white bg-white p-5 shadow-sm">
+          <div className="mb-4">
+            <h2 className="text-base font-bold text-gray-900">רמת השפה</h2>
+            <p className="text-sm text-gray-500">נתאים את אורך המשפטים, הקצב ורמת המורכבות לקוראים הצפויים.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {languageLevels.map((level) => (
               <button
-                key={l.id}
-                onClick={() => setPersonalization({ languageLevel: l.id })}
+                key={level.id}
+                type="button"
+                onClick={() => setPersonalization({ languageLevel: level.id })}
                 className={cn(
-                  'py-2 px-2 rounded-xl text-xs font-medium border-2 transition-all text-center',
-                  params.languageLevel === l.id
-                    ? 'border-coral-500 bg-coral-50 text-coral-700'
-                    : 'border-gray-100 bg-white text-gray-600'
+                  'rounded-[1.75rem] border-2 p-4 text-right transition-all',
+                  params.languageLevel === level.id
+                    ? 'border-coral-500 bg-coral-50 shadow-md shadow-coral-100'
+                    : 'border-gray-100 bg-[#FFF9F0] hover:border-coral-200'
                 )}
               >
-                {l.label}
+                <p className="font-bold text-gray-900">{level.label}</p>
+                <p className="mt-1 text-sm leading-6 text-gray-500">{level.hint}</p>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Nikud Toggle */}
-        <div className="flex items-center justify-between bg-white rounded-xl border border-gray-100 px-4 py-3">
-          <label className="font-semibold text-gray-700 text-sm">הוסף ניקוד לטקסט</label>
+        <section className="flex items-center justify-between rounded-[2rem] border border-white bg-white px-5 py-4 shadow-sm">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">ניקוד בטקסט</h2>
+            <p className="text-sm text-gray-500">מומלץ בעיקר לקהל צעיר או להקראה משותפת.</p>
+          </div>
           <button
+            type="button"
             onClick={() => setPersonalization({ includeNikud: !params.includeNikud })}
             className={cn(
-              'relative w-12 h-6 rounded-full transition-colors duration-200',
+              'relative h-7 w-14 rounded-full transition-colors',
               params.includeNikud ? 'bg-coral-500' : 'bg-gray-200'
             )}
           >
             <span
               className={cn(
-                'absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200',
-                params.includeNikud ? 'right-0.5' : 'left-0.5'
+                'absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all',
+                params.includeNikud ? 'right-1' : 'left-1'
               )}
             />
           </button>
-        </div>
+        </section>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 max-w-[430px] mx-auto px-4 pb-6 pt-3 bg-gradient-to-t from-[#FFF9F0] to-transparent">
+      <div className="fixed inset-x-0 bottom-0 mx-auto max-w-[640px] bg-gradient-to-t from-[#FFF9F0] via-[#FFF9F0] px-4 pt-4 pb-6 md:px-6">
         <Button size="lg" onClick={nextStep} disabled={!isValid}>
-          המשך לתשלום ›
+          המשיכו לתצוגה ואישור
         </Button>
       </div>
     </div>

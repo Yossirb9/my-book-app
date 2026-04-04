@@ -1,31 +1,21 @@
 'use client'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+
 import { useCreateBookStore } from '@/store/createBookStore'
 import StepBookType from '@/components/create/StepBookType'
-import StepParameters from '@/components/create/StepParameters'
 import StepCharacters from '@/components/create/StepCharacters'
-import StepPersonalization from '@/components/create/StepPersonalization'
+import StepParameters from '@/components/create/StepParameters'
 import StepPayment from '@/components/create/StepPayment'
+import StepPersonalization from '@/components/create/StepPersonalization'
 
 const STEPS = [StepBookType, StepParameters, StepCharacters, StepPersonalization, StepPayment]
 
 export default function CreatePage() {
-  const step = useCreateBookStore((s) => s.step)
+  const step = useCreateBookStore((state) => state.step)
   const StepComponent = STEPS[step - 1]
-  const router = useRouter()
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) router.replace('/login?returnTo=/create')
-    })
-  }, [router])
 
   return (
     <main className="min-h-dvh bg-[#FFF9F0] md:flex md:items-start md:justify-center">
-      <div className="w-full md:max-w-[500px] md:min-h-dvh">
+      <div className="wizard-page w-full md:max-w-[640px]">
         <StepComponent />
       </div>
     </main>

@@ -1,69 +1,95 @@
 'use client'
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Button from '@/components/ui/Button'
 
-export default function SignupPage() {
+import Link from 'next/link'
+import { Suspense, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Button from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { createClient } from '@/lib/supabase/client'
+
+function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo') || '/books'
+  const isReturningToCreate = returnTo === '/create'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const subtitle = useMemo(() => {
+    if (isReturningToCreate) {
+      return 'פתחו חשבון קצרצר, והספר שהתחלתם יישאר בדיוק במקום שבו עצרתם.'
+    }
+
+    return 'יוצרים חשבון כדי לשמור ספרים, לערוך אותם ולחזור אליהם מכל מכשיר.'
+  }, [isReturningToCreate])
+
+  const handleSignup = async (event: React.FormEvent) => {
+    event.preventDefault()
     setLoading(true)
     setError('')
+
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({ email, password })
-    if (error) {
-      setError(error.message)
+    const { error: signupError } = await supabase.auth.signUp({ email, password })
+
+    if (signupError) {
+      setError(signupError.message)
     } else {
-      router.push('/books')
+      router.push(returnTo)
     }
+
     setLoading(false)
   }
 
   return (
-    <main className="flex flex-col min-h-dvh bg-[#FFF9F0] justify-center px-6">
-      <div className="text-center mb-8">
-        <div className="text-5xl mb-3">✨</div>
-        <h1 className="text-2xl font-black text-gray-800">הצטרפו אלינו</h1>
-        <p className="text-gray-500 text-sm mt-1">צרו חשבון חינמי</p>
+    <div className="w-full max-w-md rounded-[2rem] border border-white bg-white p-6 shadow-lg shadow-coral-100/60">
+      <div className="mb-6 text-center">
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">פותחים חשבון</p>
+        <h1 className="mt-3 text-3xl font-black text-gray-900">מתחילים לשמור ספרים</h1>
+        <p className="mt-2 text-sm leading-7 text-gray-600">{subtitle}</p>
       </div>
 
-      <form onSubmit={handleSignup} className="flex flex-col gap-3">
-        <input
+      <form onSubmit={handleSignup} className="space-y-4">
+        <Input
           type="email"
-          placeholder="אימייל"
+          label="אימייל"
+          placeholder="name@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(event) => setEmail(event.target.value)}
           required
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
         />
-        <input
+        <Input
           type="password"
-          placeholder="סיסמה (לפחות 6 תווים)"
+          label="סיסמה"
+          placeholder="לפחות 6 תווים"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+          onChange={(event) => setPassword(event.target.value)}
+          error={error || undefined}
           minLength={6}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white focus:outline-none focus:border-coral-400 text-right"
+          required
         />
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <Button size="lg" type="submit" loading={loading}>
-          הרשמה חינמית
+          הרשמה והמשך
         </Button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-4">
-        יש לכם כבר חשבון?{' '}
-        <Link href="/login" className="text-coral-500 font-semibold">
+      <p className="mt-5 text-center text-sm text-gray-500">
+        כבר יש לכם חשבון?{' '}
+        <Link href={`/login?returnTo=${encodeURIComponent(returnTo)}`} className="font-semibold text-coral-600">
           כניסה
         </Link>
       </p>
+    </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-[#FFF9F0] px-4 py-10">
+      <Suspense fallback={<div className="h-40" />}>
+        <SignupForm />
+      </Suspense>
     </main>
   )
 }

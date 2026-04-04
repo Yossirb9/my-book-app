@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { Json } from '@/lib/supabase/database.types'
 import { BookParams } from '@/types'
-import { randomUUID } from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth is optional — get user if logged in, otherwise create anonymously
-    let userId: string
-    try {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      userId = user?.id ?? randomUUID()
-    } catch {
-      userId = randomUUID()
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     }
 
     const body = await req.json()
@@ -25,15 +23,13 @@ export async function POST(req: NextRequest) {
 
     const adminSupabase = await createAdminClient()
 
-    // Create book record
     const { data: book, error } = await adminSupabase
       .from('books')
       .insert({
-        user_id: userId,
+        user_id: user.id,
         title: buildTitle(params),
         status: 'draft',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        params: params as any,
+        params: params as unknown as Json,
         image_regenerations_left: 3,
         text_regenerations_left: 3,
         paid: true,
@@ -46,45 +42,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create book' }, { status: 500 })
     }
 
-    // Upload character photos to Supabase Storage and insert characters
     const characterInserts = await Promise.all(
-      params.characters.map(async (c) => {
-        let imageUrl: string | undefined = undefined
+      params.characters.map(async (character) => {
+        let imageUrl: string | undefined
 
-        if (c.imageUrl) {
+        if (character.imageUrl) {
           try {
-            // imageUrl is a base64 data URL: "data:image/jpeg;base64,..."
-            const base64Match = c.imageUrl.match(/^data:(.+);base64,(.+)$/)
+            const base64Match = character.imageUrl.match(/^data:(.+);base64,(.+)$/)
             if (base64Match) {
               const mimeType = base64Match[1]
               const base64Data = base64Match[2]
               const buffer = Buffer.from(base64Data, 'base64')
               const ext = mimeType.split('/')[1]?.split('+')[0] || 'jpg'
-              const filePath = `characters/${book.id}/${c.id || randomUUID()}.${ext}`
+              const filePath = `characters/${book.id}/${character.id}.${ext}`
 
               const { error: uploadError } = await adminSupabase.storage
                 .from('book-images')
                 .upload(filePath, buffer, { contentType: mimeType, upsert: true })
 
               if (!uploadError) {
-                const { data: urlData } = adminSupabase.storage
-                  .from('book-images')
-                  .getPublicUrl(filePath)
+                const { data: urlData } = adminSupabase.storage.from('book-images').getPublicUrl(filePath)
                 imageUrl = urlData.publicUrl
               } else {
                 console.error('Character image upload error:', uploadError)
               }
             }
-          } catch (uploadErr) {
-            console.error('Failed to upload character image:', uploadErr)
+          } catch (uploadError) {
+            console.error('Failed to upload character image:', uploadError)
           }
         }
 
         return {
           book_id: book.id,
-          name: c.name,
-          role: c.role,
-          description: c.description,
+          name: character.name,
+          role: character.role,
+          description: character.description,
           image_url: imageUrl,
         }
       })
@@ -93,21 +85,20 @@ export async function POST(req: NextRequest) {
     await adminSupabase.from('characters').insert(characterInserts)
 
     return NextResponse.json({ bookId: book.id })
-
-  } catch (e) {
-    console.error('Create book error:', e)
+  } catch (error) {
+    console.error('Create book error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-function buildTitle(params: BookParams): string {
-  const mainChar = params.characters.find((c) => c.role === 'main')
+function buildTitle(params: BookParams) {
+  const mainCharacter = params.characters.find((character) => character.role === 'main')
   const templates: Record<string, string> = {
     new_sibling: 'הספר של',
-    birthday_child: 'יום הולדת שמח',
-    potty_training: 'הגיבור',
-    family_love: 'המשפחה שלנו',
+    birthday_child: 'יום הולדת שמח ל',
+    potty_training: 'הגיבור של הגמילה',
+    family_love: 'המשפחה של',
   }
-  const base = templates[params.template] || 'הספר שלי'
-  return mainChar ? `${base} ${mainChar.name}` : base
+  const base = templates[params.template] || 'הספר של'
+  return mainCharacter ? `${base} ${mainCharacter.name}` : 'הספר שלי'
 }

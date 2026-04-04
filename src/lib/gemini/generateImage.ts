@@ -22,7 +22,12 @@ export async function generatePageImage(
   // Fall back to all refs if filter produced nothing
   const relevantRefs = refs.length > 0 ? refs : characterImageBase64s
 
-  const charList = characters.map((c) => {
+  // Only include characters that are in this scene
+  const sceneCharacters = (charactersInScene && charactersInScene.length > 0)
+    ? characters.filter((c) => charactersInScene.some((n) => n.trim().toLowerCase() === c.name.trim().toLowerCase()))
+    : characters
+
+  const charList = sceneCharacters.map((c) => {
     const hasRef = relevantRefs.some((r) => r.name.trim().toLowerCase() === c.name.trim().toLowerCase())
     return `- ${c.name}${c.description ? ' (' + c.description + ')' : ''}${hasRef ? ' ← REFERENCE PHOTO ATTACHED' : ''}`
   }).join('\n')
@@ -34,29 +39,33 @@ export async function generatePageImage(
 SCENE TO ILLUSTRATE:
 ${sceneDescription}
 
-CHARACTERS:
+CHARACTERS IN THIS SCENE (ONLY these characters should appear — do NOT add any other people):
 ${charList}
+
+CRITICAL: Only the characters listed above should appear in the image. Do not add strangers, extra children, or background people.
 
 ${relevantRefs.length > 0 ? `REFERENCE PHOTOS: I am attaching ${relevantRefs.length} real reference photo(s) of the characters.
 YOU MUST:
 - Make each character's face look IDENTICAL to their reference photo
-- Match exact facial features, skin tone, eye color, hair color, hair style, and age
+- Match EXACT age, facial features, skin tone, eye color, hair color, and hair style
+- Do NOT make characters younger or older than they appear in the reference photo
 - The people in this book are REAL — parents will show this to their children
-- Character likeness is the #1 priority of this illustration` : ''}
+- Character likeness and correct age is the #1 priority of this illustration` : ''}
 
-STYLE REQUIREMENTS (MANDATORY):
-- PHOTOREALISTIC style — like a high-end photograph or hyper-realistic digital art
-- NOT cartoon, NOT illustrated, NOT animated, NOT watercolor, NOT painterly
-- Cinematic warm lighting, soft depth of field
-- Rich detail in faces, clothing, and environment
-- Professional photography quality
+STYLE REQUIREMENTS (ABSOLUTELY MANDATORY — NO EXCEPTIONS):
+- PHOTOREALISTIC style ONLY — like a high-end professional photograph
+- STRICTLY FORBIDDEN: cartoon, illustration, animation, watercolor, painting, sketch, comic, drawing, 3D render, CGI
+- If you feel tempted to add any illustrated or stylized elements — DON'T. Stay purely photographic.
+- Cinematic warm lighting, soft depth of field, bokeh background
+- Rich detail in faces, clothing, textures, and environment
+- Professional DSLR photography quality
 
 COMPOSITION:
 - Format: ${format}
 - Warm, inviting family atmosphere
 - Child-friendly scene with beautiful natural or home setting
-- NO text, words, letters, or writing anywhere in the image
-- Faces clearly visible and well-lit`
+- NO text, words, letters, numbers, or writing anywhere in the image
+- Faces clearly visible, well-lit, and sharp`
 
   const imageParts = relevantRefs.map((ref) => ({
     inlineData: {

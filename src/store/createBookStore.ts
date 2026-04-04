@@ -1,12 +1,23 @@
 import { create } from 'zustand'
-import { BookParams, Character, BookTemplate, EmotionalDirection, AgeGroup, BookLength, BookFormat } from '@/types'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import {
+  AgeGroup,
+  BookFormat,
+  BookLength,
+  BookParams,
+  BookTemplate,
+  Character,
+  EmotionalDirection,
+} from '@/types'
 
 interface CreateBookState {
   step: number
   params: Partial<BookParams>
+  showAuthGate: boolean
   setStep: (step: number) => void
   nextStep: () => void
   prevStep: () => void
+  setShowAuthGate: (show: boolean) => void
   setTemplate: (template: BookTemplate) => void
   setDirection: (direction: EmotionalDirection) => void
   setAgeGroup: (age: AgeGroup) => void
@@ -17,48 +28,65 @@ interface CreateBookState {
   reset: () => void
 }
 
-export const useCreateBookStore = create<CreateBookState>((set) => ({
-  step: 1,
-  params: {
-    visualStyle: 'realistic',
-    includeNikud: false,
-    languageLevel: 'kindergarten',
-    characters: [],
-  },
+const initialParams: Partial<BookParams> = {
+  visualStyle: 'realistic',
+  includeNikud: false,
+  languageLevel: 'kindergarten',
+  characters: [],
+}
 
-  setStep: (step) => set({ step }),
-  nextStep: () => set((s) => ({ step: s.step + 1 })),
-  prevStep: () => set((s) => ({ step: Math.max(1, s.step - 1) })),
-
-  setTemplate: (template) =>
-    set((s) => ({ params: { ...s.params, template } })),
-
-  setDirection: (emotionalDirection) =>
-    set((s) => ({ params: { ...s.params, emotionalDirection } })),
-
-  setAgeGroup: (ageGroup) =>
-    set((s) => ({ params: { ...s.params, ageGroup } })),
-
-  setLength: (length) =>
-    set((s) => ({ params: { ...s.params, length } })),
-
-  setFormat: (format) =>
-    set((s) => ({ params: { ...s.params, format } })),
-
-  setCharacters: (characters) =>
-    set((s) => ({ params: { ...s.params, characters } })),
-
-  setPersonalization: (data) =>
-    set((s) => ({ params: { ...s.params, ...data } })),
-
-  reset: () =>
-    set({
+export const useCreateBookStore = create<CreateBookState>()(
+  persist(
+    (set) => ({
       step: 1,
-      params: {
-        visualStyle: 'realistic',
-        includeNikud: false,
-        languageLevel: 'kindergarten',
-        characters: [],
-      },
+      params: initialParams,
+      showAuthGate: false,
+
+      setStep: (step) => set({ step }),
+      nextStep: () => set((state) => ({ step: state.step + 1 })),
+      prevStep: () => set((state) => ({ step: Math.max(1, state.step - 1) })),
+      setShowAuthGate: (showAuthGate) => set({ showAuthGate }),
+
+      setTemplate: (template) =>
+        set((state) => ({ params: { ...state.params, template } })),
+
+      setDirection: (emotionalDirection) =>
+        set((state) => ({ params: { ...state.params, emotionalDirection } })),
+
+      setAgeGroup: (ageGroup) =>
+        set((state) => ({ params: { ...state.params, ageGroup } })),
+
+      setLength: (length) =>
+        set((state) => ({ params: { ...state.params, length } })),
+
+      setFormat: (format) =>
+        set((state) => ({ params: { ...state.params, format } })),
+
+      setCharacters: (characters) =>
+        set((state) => ({ params: { ...state.params, characters } })),
+
+      setPersonalization: (data) =>
+        set((state) => ({ params: { ...state.params, ...data } })),
+
+      reset: () =>
+        set({
+          step: 1,
+          params: initialParams,
+          showAuthGate: false,
+        }),
     }),
-}))
+    {
+      name: 'create-book-flow',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        step: state.step,
+        params: state.params,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.showAuthGate = false
+        }
+      },
+    }
+  )
+)

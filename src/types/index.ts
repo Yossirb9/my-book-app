@@ -3,12 +3,18 @@ export type BookTemplate =
   | 'birthday_child'
   | 'potty_training'
   | 'family_love'
+  | 'fear_of_dark'
+  | 'first_day_school'
+  | 'first_haircut'
+  | 'lost_tooth'
+  | 'new_pet'
+  | 'two_homes'
+  | 'goodbye_pacifier'
+  | 'independence_day'
+  | 'self_confidence'
+  | 'emotional_journal'
 
-export type EmotionalDirection =
-  | 'emotional'
-  | 'funny'
-  | 'empowering'
-  | 'adventurous'
+export type EmotionalDirection = 'emotional' | 'funny' | 'empowering' | 'adventurous'
 
 export type AgeGroup = '0-2' | '3-5' | '6-8' | '9+'
 
@@ -74,7 +80,6 @@ export interface CreateBookPayload {
   params: BookParams
 }
 
-// Pricing
 export const BOOK_PRICES: Record<BookLength, number> = {
   short: 89,
   medium: 129,
@@ -87,21 +92,38 @@ export const REGEN_LIMITS: Record<'standard' | 'premium', { image: number; text:
 }
 
 export const TEMPLATE_LABELS: Record<BookTemplate, string> = {
-  new_sibling: '👶 אח חדש',
-  birthday_child: '🎂 יום הולדת',
-  potty_training: '🌟 גמילה',
-  family_love: '❤️ ספר אהבה',
+  new_sibling: 'אח או אחות חדשים',
+  birthday_child: 'יום הולדת',
+  potty_training: 'גמילה מחיתולים',
+  family_love: 'ספר אהבה משפחתי',
+  fear_of_dark: 'פחד מהחושך',
+  first_day_school: 'יום ראשון בגן או בבית הספר',
+  first_haircut: 'תספורת ראשונה',
+  lost_tooth: 'השן הראשונה',
+  new_pet: 'חיית מחמד חדשה',
+  two_homes: 'שני בתים',
+  goodbye_pacifier: 'נפרדים מהמוצץ',
+  independence_day: 'יום העצמאות',
+  self_confidence: 'ביטחון עצמי',
+  emotional_journal: 'יומן רגשי משפחתי',
 }
 
 export const DIRECTION_LABELS: Record<EmotionalDirection, string> = {
-  emotional: '🥹 מרגש ומיוחד',
-  funny: '😄 מצחיק ומשפחתי',
-  empowering: '💪 מעצים לגיבור',
-  adventurous: '🌈 הרפתקני-דמיוני',
+  emotional: 'מרגש ועדין',
+  funny: 'קליל ומשפחתי',
+  empowering: 'מעצים ובטוח',
+  adventurous: 'הרפתקני ודמיוני',
 }
 
 export const LENGTH_PAGES: Record<BookLength, { min: number; max: number; label: string }> = {
-  short: { min: 8, max: 12, label: 'קצר 8–12 עמ׳' },
-  medium: { min: 16, max: 20, label: 'בינוני 16–20 עמ׳' },
-  long: { min: 24, max: 32, label: 'ארוך 24–32 עמ׳' },
+  short: { min: 8, max: 12, label: '8-12 עמודים' },
+  medium: { min: 16, max: 20, label: '16-20 עמודים' },
+  long: { min: 24, max: 32, label: '24-32 עמודים' },
+}
+
+export const BOOK_STATUS_LABELS: Record<BookStatus, string> = {
+  draft: 'טיוטה',
+  generating: 'ביצירה',
+  ready: 'מוכן לקריאה',
+  failed: 'נדרש ניסיון נוסף',
 }

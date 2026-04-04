@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 const HTMLFlipBook = require('react-pageflip').default
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import BookEditor from './BookEditor'
 
 /* ─── Types ───────────────────────────────────────────────── */
 interface Page {
@@ -11,6 +12,7 @@ interface Page {
   page_number: number
   text: string
   image_url?: string
+  image_prompt?: string
 }
 interface Book {
   id: string
@@ -21,33 +23,45 @@ interface Book {
   text_regenerations_left: number
 }
 
+/* ─────────────────────────────────────────────────────────────
+   STRATEGY: CSS scaleX(-1) mirror on the HTMLFlipBook wrapper.
+   This guarantees RTL appearance (cover on RIGHT, pages flip
+   right→left) regardless of react-pageflip internals.
+   Every page component un-mirrors its OWN content with a nested
+   scaleX(-1), so text/images appear normal.
+   Page order in array: [TextPage, ImagePage] per spread.
+   After mirror: Text appears on RIGHT, Image appears on LEFT ✓
+   ───────────────────────────────────────────────────────────── */
+
 /* ─── Front Cover ─────────────────────────────────────────── */
 const CoverPage = React.forwardRef<HTMLDivElement, { title: string; coverImage?: string }>(
   ({ title, coverImage }, ref) => (
-    <div
-      ref={ref}
-      className="relative overflow-hidden select-none"
-      style={{ height: '100%', background: 'linear-gradient(160deg,#1a1a2e,#0f3460)' }}
-    >
-      {coverImage && (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/75" />
-        </>
-      )}
-      <div className="absolute inset-3 rounded-xl border border-white/25 pointer-events-none" />
-      <div className="absolute inset-5 rounded-lg border border-white/10 pointer-events-none" />
-      <div className="absolute inset-x-0 bottom-0 px-6 pb-7 flex flex-col items-center gap-2" style={{ direction: 'rtl' }}>
-        <div className="w-12 h-px bg-white/50" />
-        <h1
-          className="text-white font-bold text-center leading-snug mt-1"
-          style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.6rem)', textShadow: '0 2px 20px rgba(0,0,0,0.95)' }}
-        >
-          {title}
-        </h1>
-        <div className="w-12 h-px bg-white/50" />
-        <p className="text-white/40 text-xs mt-1">ספר אישי</p>
+    <div ref={ref} style={{ height: '100%' }}>
+      {/* Un-mirror: content looks normal, book wrapper mirrors it to RTL */}
+      <div
+        className="relative overflow-hidden select-none"
+        style={{ transform: 'scaleX(-1)', height: '100%', background: 'linear-gradient(160deg,#1a1a2e,#0f3460)' }}
+      >
+        {coverImage && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/75" />
+          </>
+        )}
+        <div className="absolute inset-3 rounded-xl border border-white/25 pointer-events-none" />
+        <div className="absolute inset-5 rounded-lg border border-white/10 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 px-6 pb-7 flex flex-col items-center gap-2" style={{ direction: 'rtl' }}>
+          <div className="w-12 h-px bg-white/50" />
+          <h1
+            className="text-white font-bold text-center leading-snug mt-1"
+            style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.6rem)', textShadow: '0 2px 20px rgba(0,0,0,0.95)' }}
+          >
+            {title}
+          </h1>
+          <div className="w-12 h-px bg-white/50" />
+          <p className="text-white/40 text-xs mt-1">ספר אישי</p>
+        </div>
       </div>
     </div>
   )
@@ -56,85 +70,92 @@ CoverPage.displayName = 'CoverPage'
 
 /* ─── Back Cover ──────────────────────────────────────────── */
 const BackCover = React.forwardRef<HTMLDivElement, { title: string }>(({ title }, ref) => (
-  <div
-    ref={ref}
-    className="relative overflow-hidden select-none"
-    style={{ height: '100%', background: 'linear-gradient(200deg,#0f3460,#1a1a2e)' }}
-  >
-    <div className="absolute inset-3 rounded-xl border border-white/15 pointer-events-none" />
-    <div className="absolute inset-0 flex items-center justify-center">
-      <p className="text-white/20 text-sm font-medium" style={{ direction: 'rtl' }}>{title}</p>
+  <div ref={ref} style={{ height: '100%' }}>
+    <div
+      className="relative overflow-hidden select-none"
+      style={{ transform: 'scaleX(-1)', height: '100%', background: 'linear-gradient(200deg,#0f3460,#1a1a2e)' }}
+    >
+      <div className="absolute inset-3 rounded-xl border border-white/15 pointer-events-none" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <p className="text-white/20 text-sm font-medium" style={{ direction: 'rtl' }}>{title}</p>
+      </div>
     </div>
   </div>
 ))
 BackCover.displayName = 'BackCover'
 
-/* ─── Image Page (left side of spread) ───────────────────── */
-const ImagePage = React.forwardRef<HTMLDivElement, { page: Page }>(({ page }, ref) => (
-  <div ref={ref} className="relative overflow-hidden select-none bg-gray-900" style={{ height: '100%' }}>
-    {page.image_url ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={page.image_url}
-        alt={`עמוד ${page.page_number}`}
-        className="absolute inset-0 w-full h-full object-cover"
-        draggable={false}
-      />
-    ) : (
-      <div className="w-full h-full bg-gradient-to-br from-orange-50 to-pink-100 flex items-center justify-center">
-        <span className="text-6xl opacity-20">🎨</span>
-      </div>
-    )}
-    {/* Page number */}
-    <div className="absolute bottom-0 inset-x-0 h-7 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1.5">
-      <span className="text-white/40" style={{ fontSize: '0.55rem' }}>{page.page_number}</span>
-    </div>
-  </div>
-))
-ImagePage.displayName = 'ImagePage'
-
-/* ─── Text Page (right side of spread) ───────────────────── */
+/* ─── Text Page (RIGHT side of spread in RTL) ────────────── */
 const TextPage = React.forwardRef<HTMLDivElement, { page: Page }>(({ page }, ref) => (
-  <div
-    ref={ref}
-    className="overflow-hidden select-none"
-    style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fdf8f2' }}
-  >
-    {/* Top ornament */}
-    <div className="shrink-0 flex items-center justify-center pt-6 pb-3">
-      <svg width="64" height="10" viewBox="0 0 64 10">
-        <line x1="0" y1="5" x2="22" y2="5" stroke="#d4b89a" strokeWidth="1"/>
-        <circle cx="32" cy="5" r="3" fill="#d4b89a"/>
-        <line x1="42" y1="5" x2="64" y2="5" stroke="#d4b89a" strokeWidth="1"/>
-      </svg>
-    </div>
-    {/* Text */}
-    <div className="flex-1 flex items-center overflow-hidden px-6 py-2">
-      <p
-        className="text-gray-800 text-right w-full"
-        style={{
-          direction: 'rtl',
-          fontFamily: "'Heebo', sans-serif",
-          fontWeight: 500,
-          lineHeight: 1.95,
-          fontSize: 'clamp(0.78rem, 2vw, 1.05rem)',
-        }}
-      >
-        {page.text}
-      </p>
-    </div>
-    {/* Bottom ornament + number */}
-    <div className="shrink-0 flex flex-col items-center pb-5 gap-2">
-      <svg width="64" height="10" viewBox="0 0 64 10">
-        <line x1="0" y1="5" x2="22" y2="5" stroke="#d4b89a" strokeWidth="1"/>
-        <circle cx="32" cy="5" r="3" fill="#d4b89a"/>
-        <line x1="42" y1="5" x2="64" y2="5" stroke="#d4b89a" strokeWidth="1"/>
-      </svg>
-      <span className="text-[#c4a882]" style={{ fontSize: '0.58rem' }}>{page.page_number}</span>
+  <div ref={ref} style={{ height: '100%' }}>
+    <div style={{ transform: 'scaleX(-1)', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* Solid cream background — absolute so react-pageflip can't override it */}
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: '#fffbf5' }} />
+      {/* Content layer */}
+      <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* Top ornament */}
+        <div className="shrink-0 flex items-center justify-center pt-6 pb-3">
+          <svg width="64" height="10" viewBox="0 0 64 10">
+            <line x1="0" y1="5" x2="22" y2="5" stroke="#c9a87c" strokeWidth="1.5"/>
+            <circle cx="32" cy="5" r="3.5" fill="#c9a87c"/>
+            <line x1="42" y1="5" x2="64" y2="5" stroke="#c9a87c" strokeWidth="1.5"/>
+          </svg>
+        </div>
+        {/* Text */}
+        <div className="flex-1 flex items-center overflow-hidden px-6 py-4">
+          <p
+            style={{
+              direction: 'rtl',
+              fontFamily: "'Heebo', sans-serif",
+              fontWeight: 600,
+              lineHeight: 2.1,
+              fontSize: 'clamp(0.85rem, 2.2vw, 1.1rem)',
+              color: '#1a1a1a',
+              textAlign: 'right',
+              width: '100%',
+            }}
+          >
+            {page.text}
+          </p>
+        </div>
+        {/* Bottom ornament + number */}
+        <div className="shrink-0 flex flex-col items-center pb-5 gap-2">
+          <svg width="64" height="10" viewBox="0 0 64 10">
+            <line x1="0" y1="5" x2="22" y2="5" stroke="#c9a87c" strokeWidth="1.5"/>
+            <circle cx="32" cy="5" r="3.5" fill="#c9a87c"/>
+            <line x1="42" y1="5" x2="64" y2="5" stroke="#c9a87c" strokeWidth="1.5"/>
+          </svg>
+          <span style={{ fontSize: '0.58rem', color: '#b8956a' }}>{page.page_number}</span>
+        </div>
+      </div>
     </div>
   </div>
 ))
 TextPage.displayName = 'TextPage'
+
+/* ─── Image Page (LEFT side of spread in RTL) ────────────── */
+const ImagePage = React.forwardRef<HTMLDivElement, { page: Page }>(({ page }, ref) => (
+  <div ref={ref} style={{ height: '100%' }}>
+    <div className="relative overflow-hidden select-none bg-gray-900" style={{ transform: 'scaleX(-1)', height: '100%' }}>
+      {page.image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={page.image_url}
+          alt={`עמוד ${page.page_number}`}
+          className="absolute inset-0 w-full h-full object-cover"
+          draggable={false}
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-orange-50 to-pink-100 flex items-center justify-center">
+          <span className="text-6xl opacity-20">🎨</span>
+        </div>
+      )}
+      <div className="absolute bottom-0 inset-x-0 h-7 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1.5">
+        <span className="text-white/40" style={{ fontSize: '0.55rem' }}>{page.page_number}</span>
+      </div>
+    </div>
+  </div>
+))
+ImagePage.displayName = 'ImagePage'
 
 /* ─── Main Viewer ─────────────────────────────────────────── */
 export default function BookViewer({
@@ -154,41 +175,40 @@ export default function BookViewer({
   const [bookKey, setBookKey] = useState(0)
   const [flipIdx, setFlipIdx] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [showEditor, setShowEditor] = useState(false)
+  const [localPages, setLocalPages] = useState(pages)
+  const [bookOpened, setBookOpened] = useState(false)
 
-  // Page structure:
-  // 0: Cover    (hard, shown alone on right)
-  // 1: Image_1  (left side of spread 1)
-  // 2: Text_1   (right side of spread 1)
-  // 3: Image_2  (left side of spread 2)
-  // 4: Text_2   (right side of spread 2)
+  // Page structure (mirrored book, LTR internally):
+  // 0: Cover    (hard, shown alone → appears on RIGHT after mirror)
+  // 1: TextPage_1  (index 1 → appears on RIGHT after mirror)
+  // 2: ImagePage_1 (index 2 → appears on LEFT after mirror)
+  // 3: TextPage_2
+  // 4: ImagePage_2
   // ...
   // 2N+1: Back cover (hard, shown alone)
-  const totalFlip = 2 + pages.length * 2 // cover + back + N*2
+  const totalFlip = 2 + pages.length * 2
 
-  // Which DB page is currently visible (-1 = cover or back)
   const dbIdx = (flipIdx <= 0 || flipIdx >= totalFlip - 1)
     ? -1
     : Math.floor((flipIdx - 1) / 2)
 
-  /* ── Measure available space → compute page dimensions ──── */
+  /* ── Measure available space ─────────────────────────────── */
   const measureBook = useCallback(() => {
     if (!bookAreaRef.current) return
     const { width, height } = bookAreaRef.current.getBoundingClientRect()
-    const availW = width - 140  // subtract arrows (≈70px each)
-    const availH = height - 48  // subtract dots+label bar
+    const availW = width - 140
+    const availH = height - 48
     if (availW < 80 || availH < 80) return
 
-    // On narrow screens: single-page portrait mode; wide: spread (2 pages)
     const isMobile = availW < 500
     const ratio = format === 'portrait' ? 297 / 210 : 1
 
-    // page_width: in spread mode = half available width; in portrait mode = full
     const divider = isMobile ? 1 : 2
     const maxPageW = isMobile ? 340 : (format === 'portrait' ? 420 : 460)
     let w = Math.min(Math.floor(availW / divider), maxPageW)
     let h = Math.floor(w * ratio)
     if (h > availH) { h = availH; w = Math.floor(h / ratio) }
-    // Ensure h > w for square format so library treats it as portrait-safe
     if (format === 'square' && h <= w) h = w + 1
 
     const cur = cfgRef.current
@@ -206,23 +226,44 @@ export default function BookViewer({
     return () => { clearTimeout(t); window.removeEventListener('resize', measureBook) }
   }, [measureBook])
 
-  /* ── Navigation ─────────────────────────────────────────── */
+  /* ── Navigation ──────────────────────────────────────────── */
   const goNext = () => bookRef.current?.pageFlip().flipNext()
   const goPrev = () => bookRef.current?.pageFlip().flipPrev()
-  // Jump to a DB page: go to its Image page (left side of spread)
-  const goToDbPage = (i: number) => bookRef.current?.pageFlip().turnToPage(1 + i * 2)
 
+  const goToDbPage = (i: number) => {
+    const targetPage = 1 + i * 2
+    if (!bookOpened) {
+      setBookOpened(true)
+      setTimeout(() => bookRef.current?.pageFlip().turnToPage(targetPage), 200)
+    } else {
+      bookRef.current?.pageFlip().turnToPage(targetPage)
+    }
+  }
+
+  const openBook = () => {
+    setBookOpened(true)
+    setTimeout(() => bookRef.current?.pageFlip().flipNext(), 150)
+  }
+
+  // Swipe: left-to-right on mirrored book = advance (RTL next)
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX)
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return
     const diff = touchStart - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 50) diff > 0 ? goNext() : goPrev()
+    // In mirrored view, swipe RIGHT→LEFT = go next (Hebrew forward)
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        goNext()
+      } else {
+        goPrev()
+      }
+    }
     setTouchStart(null)
   }
 
   const { w: pageW, h: pageH, portrait: isMobile } = bookCfg
-  const isCover = flipIdx === 0
-  const isBack = flipIdx >= totalFlip - 1
+  const isCover = flipIdx === 0 || !bookOpened
+  const isBack = bookOpened && flipIdx >= totalFlip - 1
 
   return (
     <div className="flex flex-col bg-[#1a1a2e]" style={{ height: '100dvh' }}>
@@ -239,12 +280,12 @@ export default function BookViewer({
           {book.title}
         </h1>
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href={`/book/${book.id}/edit`}
+          <button
+            onClick={() => setShowEditor(true)}
             className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs md:text-sm px-2.5 md:px-3 py-1.5 rounded-lg transition-colors"
           >
             ✏️ <span className="hidden sm:inline">ערוך</span>
-          </Link>
+          </button>
           <a
             href={book.pdf_digital_url || '#'}
             download
@@ -278,7 +319,10 @@ export default function BookViewer({
 
           {/* Cover thumbnail */}
           <button
-            onClick={() => bookRef.current?.pageFlip().turnToPage(0)}
+            onClick={() => {
+              if (bookOpened) bookRef.current?.pageFlip().turnToPage(0)
+              // If not opened: cover is already visible (static), do nothing
+            }}
             className={cn(
               'rounded-xl overflow-hidden border-2 transition-all shrink-0',
               isCover ? 'border-coral-500 shadow-lg shadow-coral-900/50' : 'border-transparent opacity-50 hover:opacity-80'
@@ -288,9 +332,9 @@ export default function BookViewer({
               className="w-full relative overflow-hidden"
               style={{ aspectRatio: format === 'portrait' ? '210/297' : '1/1', background: 'linear-gradient(160deg,#1a1a2e,#0f3460)' }}
             >
-              {pages[0]?.image_url && (
+              {localPages[0]?.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={pages[0].image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                <img src={localPages[0].image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
               )}
               <div className="absolute inset-0 flex items-end justify-center pb-2">
                 <span className="text-white text-xs font-bold text-center px-1 leading-tight" style={{ direction: 'rtl', textShadow: '0 1px 4px rgba(0,0,0,0.9)', fontSize: '0.6rem' }}>
@@ -303,14 +347,14 @@ export default function BookViewer({
             </div>
           </button>
 
-          {/* DB page thumbnails */}
-          {pages.map((p, idx) => (
+          {/* Page thumbnails */}
+          {localPages.map((p, idx) => (
             <button
               key={p.id}
               onClick={() => goToDbPage(idx)}
               className={cn(
                 'rounded-xl overflow-hidden border-2 transition-all shrink-0',
-                dbIdx === idx
+                !isCover && !isBack && dbIdx === idx
                   ? 'border-coral-500 shadow-lg shadow-coral-900/50'
                   : 'border-transparent opacity-50 hover:opacity-80'
               )}
@@ -336,120 +380,186 @@ export default function BookViewer({
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Book + arrows */}
+          {/* Book area */}
           <div
             ref={bookAreaRef}
-            className="flex-1 min-h-0 flex items-center justify-center gap-2 md:gap-5 px-1 md:px-6 py-3"
+            className="flex-1 min-h-0 flex items-center justify-center px-1 md:px-6 py-3"
           >
-            {/* Prev › */}
-            <button
-              onClick={goPrev}
-              disabled={isCover}
-              className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
-              style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
-              aria-label="עמוד קודם"
-            >
-              ›
-            </button>
-
-            {/* Book */}
-            {pageW > 0 && (
-              <HTMLFlipBook
-                key={bookKey}
-                ref={bookRef}
-                width={pageW}
-                height={pageH}
-                size="fixed"
-                minWidth={pageW}
-                maxWidth={pageW}
-                minHeight={pageH}
-                maxHeight={pageH}
-                usePortrait={isMobile}
-                showCover={true}
-                flippingTime={680}
-                maxShadowOpacity={0.55}
-                drawShadow={true}
-                startPage={0}
-                autoSize={false}
-                mobileScrollSupport={false}
-                clickEventForward={true}
-                useMouseEvents={true}
-                swipeDistance={30}
-                showPageCorners={true}
-                disableFlipByClick={false}
-                startZIndex={2}
-                onFlip={(e: { data: number }) => setFlipIdx(e.data)}
-                className=""
-                style={{
-                  boxShadow: '0 24px 70px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)',
-                }}
-              >
-                {/* 0: Front cover (hard page, shown alone) */}
-                <CoverPage title={book.title} coverImage={pages[0]?.image_url} />
-
-                {/* For each DB page: Image (left) + Text (right) */}
-                {pages.map((p, i) => [
-                  <ImagePage key={`img-${p.id}`} page={p} />,
-                  <TextPage  key={`txt-${p.id}`} page={p} />,
-                ])}
-
-                {/* Last: Back cover (hard page, shown alone) */}
-                <BackCover title={book.title} />
-              </HTMLFlipBook>
-            )}
-
-            {/* Loading spinner */}
-            {pageW === 0 && (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            {/* ── CLOSED: static cover ──────────────────── */}
+            {!bookOpened && (
+              <div className="flex flex-col items-center gap-5">
+                <div
+                  className="relative cursor-pointer select-none"
+                  style={{
+                    width: pageW > 0 ? pageW : 260,
+                    height: pageH > 0 ? pageH : 370,
+                    boxShadow: '8px 12px 50px rgba(0,0,0,0.85), -3px 0 8px rgba(0,0,0,0.4)',
+                    borderRadius: '3px 6px 6px 3px',
+                    overflow: 'hidden',
+                  }}
+                  onClick={openBook}
+                >
+                  <CoverPage title={book.title} coverImage={localPages[0]?.image_url} />
+                </div>
+                <button
+                  onClick={openBook}
+                  className="text-white/70 hover:text-white text-sm transition-colors flex items-center gap-1.5"
+                >
+                  <span>פתח את הספר</span>
+                  <span style={{ fontSize: '1.1rem' }}>‹</span>
+                </button>
               </div>
             )}
 
-            {/* Next ‹ */}
-            <button
-              onClick={goNext}
-              disabled={isBack}
-              className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
-              style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
-              aria-label="עמוד הבא"
-            >
-              ‹
-            </button>
+            {/* ── OPEN: mirrored flip book ───────────────── */}
+            {bookOpened && (
+              /* dir="ltr" prevents RTL flex from visually swapping the buttons */
+              <div className="flex items-center justify-center gap-2 md:gap-5 w-full h-full" dir="ltr">
+                {/* LEFT button = next page in Hebrew (advance forward) */}
+                <button
+                  onClick={goNext}
+                  disabled={isBack}
+                  className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
+                  style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
+                  aria-label="עמוד הבא"
+                >
+                  ‹
+                </button>
+
+                {pageW > 0 && (
+                  /* scaleX(-1) mirror: makes LTR book appear RTL (cover on right, pages flip right→left) */
+                  <div style={{ transform: 'scaleX(-1)' }}>
+                    <HTMLFlipBook
+                      key={bookKey}
+                      ref={bookRef}
+                      width={pageW}
+                      height={pageH}
+                      size="fixed"
+                      minWidth={pageW}
+                      maxWidth={pageW}
+                      minHeight={pageH}
+                      maxHeight={pageH}
+                      usePortrait={isMobile}
+                      showCover={true}
+                      flippingTime={680}
+                      maxShadowOpacity={0.55}
+                      drawShadow={true}
+                      startPage={0}
+                      autoSize={false}
+                      mobileScrollSupport={false}
+                      clickEventForward={true}
+                      useMouseEvents={true}
+                      swipeDistance={30}
+                      showPageCorners={true}
+                      disableFlipByClick={false}
+                      startZIndex={2}
+                      onFlip={(e: { data: number }) => {
+                        setFlipIdx(e.data)
+                        // Close book smoothly when user navigates back to cover
+                        if (e.data === 0) {
+                          setTimeout(() => setBookOpened(false), 750)
+                        }
+                      }}
+                      style={{
+                        boxShadow: '0 24px 70px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <CoverPage title={book.title} coverImage={localPages[0]?.image_url} />
+                      {localPages.map((p) => [
+                        // Text first → appears on RIGHT in mirrored view ✓
+                        <TextPage  key={`txt-${p.id}`} page={p} />,
+                        // Image second → appears on LEFT in mirrored view ✓
+                        <ImagePage key={`img-${p.id}`} page={p} />,
+                      ])}
+                      <BackCover title={book.title} />
+                    </HTMLFlipBook>
+                  </div>
+                )}
+
+                {pageW === 0 && (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+
+                {/* RIGHT button = previous page */}
+                <button
+                  onClick={goPrev}
+                  disabled={flipIdx <= 0}
+                  className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
+                  style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
+                  aria-label="עמוד קודם"
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ── Progress dots ─────────────────────────────── */}
           <div className="shrink-0 flex flex-col items-center gap-1 pb-3">
             <div className="flex gap-1.5 items-center">
-              {/* Cover dot */}
               <button
-                onClick={() => bookRef.current?.pageFlip().turnToPage(0)}
+                onClick={() => {
+                  if (bookOpened) bookRef.current?.pageFlip().turnToPage(0)
+                }}
                 className={cn('rounded-full transition-all', isCover ? 'w-4 h-2 bg-coral-500' : 'w-2 h-2 bg-white/30 hover:bg-white/60')}
               />
-              {/* DB pages window */}
-              {pages
-                .slice(Math.max(0, dbIdx < 0 ? 0 : dbIdx - 2), Math.min(pages.length, dbIdx < 0 ? 5 : dbIdx + 4))
+              {localPages
+                .slice(Math.max(0, dbIdx < 0 ? 0 : dbIdx - 2), Math.min(localPages.length, dbIdx < 0 ? 5 : dbIdx + 4))
                 .map((_, i) => {
                   const idx = Math.max(0, dbIdx < 0 ? 0 : dbIdx - 2) + i
                   return (
                     <button
                       key={idx}
                       onClick={() => goToDbPage(idx)}
-                      className={cn('rounded-full transition-all', dbIdx === idx ? 'w-4 h-2 bg-coral-500' : 'w-2 h-2 bg-white/30 hover:bg-white/60')}
+                      className={cn('rounded-full transition-all', !isCover && !isBack && dbIdx === idx ? 'w-4 h-2 bg-coral-500' : 'w-2 h-2 bg-white/30 hover:bg-white/60')}
                     />
                   )
                 })}
-              {/* Back cover dot */}
               <button
-                onClick={() => bookRef.current?.pageFlip().turnToPage(totalFlip - 1)}
+                onClick={() => {
+                  if (bookOpened) bookRef.current?.pageFlip().turnToPage(totalFlip - 1)
+                }}
                 className={cn('rounded-full transition-all', isBack ? 'w-4 h-2 bg-coral-500' : 'w-2 h-2 bg-white/30 hover:bg-white/60')}
               />
             </div>
             <p className="text-white/30 text-xs">
-              {isCover ? 'כריכה קדמית' : isBack ? 'כריכה אחורית' : `עמוד ${dbIdx + 1} מתוך ${pages.length}`}
+              {isCover ? 'כריכה קדמית' : isBack ? 'כריכה אחורית' : `עמוד ${dbIdx + 1} מתוך ${localPages.length}`}
             </p>
           </div>
         </main>
       </div>
+
+      {/* ── Editor Overlay ───────────────────────────────────── */}
+      {showEditor && (
+        <div className="fixed inset-0 z-50 flex justify-start" dir="rtl">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowEditor(false)}
+          />
+          {/* Panel slides in from the right (start in RTL) */}
+          <div className="relative w-full max-w-sm bg-[#FFF9F0] h-full overflow-y-auto shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-800 text-base">עריכת הספר</h2>
+              <button
+                onClick={() => setShowEditor(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <BookEditor
+                book={book}
+                pages={localPages}
+                onPagesChange={setLocalPages}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
