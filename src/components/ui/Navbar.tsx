@@ -15,7 +15,6 @@ type NavbarProps = {
 const MARKETING_LINKS = [
   { href: '/#how-it-works', label: 'איך זה עובד' },
   { href: '/about', label: 'אנחנו' },
-  { href: '/contact', label: 'צור קשר' },
   { href: '/#faq', label: 'שאלות נפוצות' },
 ]
 
@@ -42,7 +41,7 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
   }, [])
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/88 backdrop-blur-xl shadow-[0_10px_35px_rgba(26,26,46,0.06)]">
+    <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/88 shadow-[0_10px_35px_rgba(26,26,46,0.06)] backdrop-blur-xl">
       <div className="mx-auto hidden max-w-7xl items-center justify-between px-8 py-4 md:flex">
         <Link href="/" className="flex items-center gap-3 text-coral-600">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-coral-50 text-sm font-black shadow-inner shadow-coral-100">
@@ -59,10 +58,7 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
             <Link
               key={link.href}
               href={link.href}
-              className={cn(
-                'transition-colors hover:text-coral-600',
-                pathname === link.href && 'text-coral-600'
-              )}
+              className={cn('transition-colors hover:text-coral-600', pathname === link.href && 'text-coral-600')}
             >
               {link.label}
             </Link>
@@ -72,10 +68,7 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={cn(
-                    'transition-colors hover:text-coral-600',
-                    pathname === link.href && 'text-coral-600'
-                  )}
+                  className={cn('transition-colors hover:text-coral-600', pathname === link.href && 'text-coral-600')}
                 >
                   {link.label}
                 </Link>
@@ -85,11 +78,9 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            <>
-              <LogoutButton className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
-                התנתקות
-              </LogoutButton>
-            </>
+            <LogoutButton className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
+              התנתקות
+            </LogoutButton>
           ) : (
             <>
               <Link href="/login">
@@ -126,11 +117,9 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
-              <>
-                <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
-                  התנתק
-                </LogoutButton>
-              </>
+              <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
+                התנתק
+              </LogoutButton>
             ) : (
               <>
                 <Link

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { generatePageImage } from '@/lib/gemini/generateImage'
+import { generatePageImageWithFallback } from '@/lib/gemini/generateImage'
 import { generateStory } from '@/lib/gemini/generateStory'
 import { generateJournal, JournalPage } from '@/lib/gemini/generateJournal'
 import { BookParams } from '@/types'
@@ -88,41 +88,36 @@ export async function POST(
       })
     ).then((results) => results.filter(Boolean) as { name: string; base64: string; mimeType: string }[])
 
-    const pagesToProcess = journalPages || storyPages!
+    const pagesToProcess = journalPages || storyPages || []
 
     await Promise.all(
       pagesToProcess.map(async (page) => {
         const needsImage = 'needsImage' in page ? (page as JournalPage).needsImage : true
         let imageUrl: string | undefined
 
-        if (needsImage) {
-          const sceneDesc = page.sceneDescription
-          if (sceneDesc) {
-            for (let attempt = 1; attempt <= 2; attempt++) {
-              try {
-                const imageBuffer = await generatePageImage(
-                  sceneDesc,
-                  bookParams.characters,
-                  bookParams,
-                  characterImageBase64s,
-                  page.charactersInScene
-                )
+        if (needsImage && page.sceneDescription) {
+          try {
+            const imageBuffer = await generatePageImageWithFallback(
+              page.sceneDescription,
+              bookParams.characters,
+              bookParams,
+              characterImageBase64s,
+              page.charactersInScene
+            )
 
-                const filePath = `books/${bookId}/page-${page.pageNumber}.jpg`
-                const { error: uploadError } = await supabase.storage
-                  .from('book-images')
-                  .upload(filePath, imageBuffer, { contentType: 'image/jpeg', upsert: true })
+            const filePath = `books/${bookId}/page-${page.pageNumber}.jpg`
+            const { error: uploadError } = await supabase.storage
+              .from('book-images')
+              .upload(filePath, imageBuffer, { contentType: 'image/jpeg', upsert: true })
 
-                if (!uploadError) {
-                  const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
-                  imageUrl = urlData.publicUrl
-                }
-
-                break
-              } catch (imageError) {
-                console.error(`Image generation attempt ${attempt} failed for page ${page.pageNumber}:`, imageError)
-              }
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
+              imageUrl = urlData.publicUrl
+            } else {
+              console.error(`Image upload failed for page ${page.pageNumber}:`, uploadError)
             }
+          } catch (imageError) {
+            console.error(`Image generation failed completely for page ${page.pageNumber}:`, imageError)
           }
         }
 
@@ -168,8 +163,7 @@ export async function POST(
 
 async function generateBookPDF(
   bookId: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pages: any[],
+  pages: unknown[],
   type: 'digital' | 'print'
 ) {
   try {
@@ -179,6 +173,7 @@ async function generateBookPDF(
 
     const response = await fetch(`${baseUrl}/api/books/${bookId}/pdf?type=${type}`, {
       method: 'POST',
+      body: JSON.stringify({ pagesCount: pages.length }),
     })
 
     if (!response.ok) return undefined

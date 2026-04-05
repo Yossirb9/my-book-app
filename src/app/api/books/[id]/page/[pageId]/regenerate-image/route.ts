@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { generatePageImage } from '@/lib/gemini/generateImage'
+import { generatePageImageWithFallback } from '@/lib/gemini/generateImage'
 
 export const maxDuration = 120
 
@@ -33,36 +33,34 @@ export async function POST(
   const body = await req.json()
   const prompt = body.prompt || page?.image_prompt || ''
 
-  // Fetch character images
   const { data: characters } = await supabase.from('characters').select('*').eq('book_id', bookId)
 
   const characterImageBase64s = await Promise.all(
-    (characters || []).map(async (char: { name: string; image_url?: string | null }) => {
-      if (!char.image_url) return null
+    (characters || []).map(async (character: { name: string; image_url?: string | null }) => {
+      if (!character.image_url) return null
       try {
-        const res = await fetch(char.image_url)
+        const res = await fetch(character.image_url)
         const buffer = await res.arrayBuffer()
         return {
-          name: char.name,
+          name: character.name,
           base64: Buffer.from(buffer).toString('base64'),
           mimeType: res.headers.get('content-type') || 'image/jpeg',
         }
-      } catch { return null }
+      } catch {
+        return null
+      }
     })
-  ).then((r) => r.filter(Boolean) as { name: string; base64: string; mimeType: string }[])
+  ).then((results) => results.filter(Boolean) as { name: string; base64: string; mimeType: string }[])
 
-  // Generate new image (send all character refs for regeneration)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bookParams = book.params as any
-  const imageBuffer = await generatePageImage(
+  const imageBuffer = await generatePageImageWithFallback(
     prompt,
     bookParams.characters,
     bookParams,
     characterImageBase64s
-    // no charactersInScene filter — user can re-generate with all refs
   )
 
-  // Upload
   const filePath = `books/${bookId}/page-${pageId}-regen-${Date.now()}.jpg`
   await supabase.storage.from('book-images').upload(filePath, imageBuffer, {
     contentType: 'image/jpeg',
@@ -70,15 +68,20 @@ export async function POST(
   })
   const { data: urlData } = supabase.storage.from('book-images').getPublicUrl(filePath)
 
-  // Update DB
-  await supabase.from('book_pages').update({
-    image_url: urlData.publicUrl,
-    image_prompt: prompt,
-  }).eq('id', pageId)
+  await supabase
+    .from('book_pages')
+    .update({
+      image_url: urlData.publicUrl,
+      image_prompt: prompt,
+    })
+    .eq('id', pageId)
 
-  await supabase.from('books').update({
-    image_regenerations_left: book.image_regenerations_left - 1,
-  }).eq('id', bookId)
+  await supabase
+    .from('books')
+    .update({
+      image_regenerations_left: book.image_regenerations_left - 1,
+    })
+    .eq('id', bookId)
 
   await supabase.from('regeneration_log').insert({
     book_id: bookId,

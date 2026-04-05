@@ -5,8 +5,20 @@ import { Suspense, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
-function GoogleButton({ returnTo, loading, onStart }: { returnTo: string; loading: boolean; onStart: () => void }) {
+function GoogleButton({
+  returnTo,
+  loading,
+  acceptedTerms,
+  onStart,
+}: {
+  returnTo: string
+  loading: boolean
+  acceptedTerms: boolean
+  onStart: () => void
+}) {
   const handleGoogleLogin = async () => {
+    if (!acceptedTerms) return
+
     onStart()
     const supabase = createClient()
     const callbackUrl = `${window.location.origin}/auth/callback?returnTo=${encodeURIComponent(returnTo)}`
@@ -20,8 +32,8 @@ function GoogleButton({ returnTo, loading, onStart }: { returnTo: string; loadin
     <button
       type="button"
       onClick={handleGoogleLogin}
-      disabled={loading}
-      className="flex w-full items-center justify-center gap-3 rounded-[1.5rem] border border-gray-200 bg-white px-5 py-4 text-base font-semibold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-60"
+      disabled={loading || !acceptedTerms}
+      className="flex w-full items-center justify-center gap-3 rounded-[1.5rem] border border-gray-200 bg-white px-5 py-4 text-base font-semibold text-gray-700 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
     >
       <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
         <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
@@ -39,6 +51,7 @@ function LoginForm() {
   const returnTo = searchParams.get('returnTo') || '/books'
   const isReturningToCreate = returnTo === '/create'
   const [loading, setLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const subtitle = useMemo(() => {
     if (isReturningToCreate) {
@@ -55,7 +68,31 @@ function LoginForm() {
         <p className="mt-2 text-sm leading-7 text-gray-600">{subtitle}</p>
       </div>
 
-      <GoogleButton returnTo={returnTo} loading={loading} onStart={() => setLoading(true)} />
+      <label className="mb-4 flex items-start gap-3 rounded-[1.25rem] bg-[#FFF9F0] p-4 text-sm leading-6 text-gray-700">
+        <input
+          type="checkbox"
+          checked={acceptedTerms}
+          onChange={(event) => setAcceptedTerms(event.target.checked)}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-coral-600 focus:ring-coral-500"
+        />
+        <span>
+          אני מאשר/ת את{' '}
+          <Link href="/terms" target="_blank" className="font-semibold text-coral-600 underline underline-offset-2">
+            תנאי השימוש
+          </Link>
+        </span>
+      </label>
+
+      <GoogleButton
+        returnTo={returnTo}
+        loading={loading}
+        acceptedTerms={acceptedTerms}
+        onStart={() => setLoading(true)}
+      />
+
+      {!acceptedTerms ? (
+        <p className="mt-3 text-center text-xs text-gray-500">כדי להתחבר עם Google צריך לאשר קודם את תנאי השימוש.</p>
+      ) : null}
 
       <p className="mt-6 text-center text-sm text-gray-500">
         עדיין אין לכם חשבון?{' '}
