@@ -8,34 +8,6 @@ export const metadata = buildMetadata({
     'הסיפור של משפחת רבינוביץ׳ והדרך שבה נולד הרעיון ליצור ספרים אישיים שמלווים רגעים משפחתיים משמעותיים ומעודדים קריאה.',
 })
 
-const FAMILY_MEMBERS = [
-  {
-    name: "יוסי רבינוביץ'",
-    role: 'מנהל בית ספר יסודי ומורה למוזיקה',
-    tone: 'from-coral-500/15 to-transparent',
-  },
-  {
-    name: "ליר רבינוביץ'",
-    role: 'מורה למחול ואמא לשלושה',
-    tone: 'from-amber-300/35 to-transparent',
-  },
-  {
-    name: 'מאיה',
-    role: 'בת 9',
-    tone: 'from-rose-300/35 to-transparent',
-  },
-  {
-    name: 'יובל',
-    role: 'בת 5',
-    tone: 'from-teal-300/35 to-transparent',
-  },
-  {
-    name: 'שחר',
-    role: 'בן 6 חודשים',
-    tone: 'from-sky-300/35 to-transparent',
-  },
-]
-
 const VALUES = [
   {
     title: 'רגעים משפחתיים שנשארים',
@@ -58,51 +30,43 @@ export default function AboutPage() {
   return (
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
       <section className="border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_left,rgba(232,124,83,0.16),transparent_38%),radial-gradient(circle_at_top_right,rgba(255,179,71,0.2),transparent_28%),linear-gradient(180deg,#FFF9F0_0%,#FFF3E2_100%)]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:px-8 md:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-          <div>
+        <div className="mx-auto max-w-5xl px-4 py-14 md:px-8 md:py-20">
+          <div className="mx-auto max-w-4xl text-center">
             <span className="inline-flex rounded-full border border-coral-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-coral-600">
               אנחנו
             </span>
-            <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
+            <h1 className="mt-5 text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
               ספרים שנולדו מתוך סיפור משפחתי אמיתי.
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-gray-700 md:text-lg">
+            <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-gray-700 md:text-lg">
               אנחנו משפחת רבינוביץ׳, ומתוך רגע אישי מאוד בבית שלנו נולד הרעיון לבנות ספרים שמלווים רגעים
               משמעותיים בחיי משפחה וילדים.
             </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {FAMILY_MEMBERS.map((member) => (
-                <article
-                  key={member.name}
-                  className={`rounded-[1.75rem] border border-white/80 bg-linear-to-br ${member.tone} bg-white p-5 shadow-[0_14px_40px_rgba(26,26,46,0.06)]`}
-                >
-                  <p className="text-lg font-black text-[#1a1a2e]">{member.name}</p>
-                  <p className="mt-1 text-sm leading-7 text-gray-600">{member.role}</p>
-                </article>
-              ))}
-            </div>
           </div>
 
-          <aside className="relative overflow-hidden rounded-[2.2rem] border border-coral-100 bg-[#1a1a2e] p-7 text-white shadow-[0_24px_60px_rgba(26,26,46,0.18)] md:p-9">
-            <div className="absolute -top-16 -left-8 h-40 w-40 rounded-full bg-coral-400/20 blur-3xl" />
-            <div className="absolute right-0 bottom-0 h-36 w-36 rounded-full bg-amber-300/15 blur-3xl" />
-            <div className="relative">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-300">הסיפור שלנו</p>
-              <p className="mt-5 text-base leading-8 text-white/82">
-                הרעיון התחיל כשרצינו לספר לבנות שלנו על ההיריון. יוסי יצר ספר מותאם אישית שיספר את הסיפור
-                המשפחתי שלנו בדרך שהן יוכלו להרגיש, להבין ולזכור.
+          <article className="mx-auto mt-10 max-w-4xl rounded-[2.2rem] border border-coral-100 bg-white/90 p-7 text-right shadow-[0_24px_60px_rgba(26,26,46,0.08)] md:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">הסיפור שלנו</p>
+            <div className="mt-5 space-y-5 text-base leading-8 text-gray-700 md:text-lg">
+              <p>
+                אנחנו יוסי וליר רבינוביץ׳. יוסי הוא מנהל בית ספר יסודי ומורה למוזיקה, ליר מורה למחול,
+                ואנחנו הורים למאיה בת 9, יובל בת 5 ושחר בן 6 חודשים.
               </p>
-              <p className="mt-4 text-base leading-8 text-white/82">
-                מתוך הרגע הזה הבנו שיש כאן משהו גדול יותר: דרך להפוך רגעים משפחתיים ואישיים לספרים
-                שמלווים ילדים, עוזרים להם לעבד חוויות, ונותנים למשפחה זיכרון מוחשי שנשאר.
+              <p>
+                הרעיון התחיל כשרצינו לספר לבנות שלנו על ההיריון. מתוך הרצון לשתף אותן בדרך קרובה, רגישה
+                ומשפחתית, יוסי יצר ספר מותאם אישית שסיפר את הסיפור שלנו.
               </p>
-              <p className="mt-4 text-base leading-8 text-white/82">
-                היום, עם מאיה בת 9, יובל בת 5 ושחר בן 6 חודשים, אנחנו ממשיכים לבנות מערכת שנועדה להפוך
-                סיפורים אמיתיים לחוויית קריאה קרובה, חמה ומשמעותית.
+              <p>
+                מאותו רגע הבנו שיש כאן משהו גדול יותר. ספר יכול להיות הרבה מעבר למתנה יפה. הוא יכול לעזור
+                לילדים להבין שינוי, להתרגש מרגע חדש, להרגיש חלק מהסיפור המשפחתי, ולשמור זיכרון משמעותי
+                שנשאר איתם.
+              </p>
+              <p>
+                מתוך זה נולד הרצון שלנו ליצור ספרים שמלווים רגעים משפחתיים ואישיים משמעותיים, ובו בזמן גם
+                מחזקים ומעודדים קריאה אצל ילדים צעירים. כשילד פוגש את עצמו בתוך הסיפור, הקריאה הופכת
+                לחוויה קרובה, טבעית ומרגשת יותר.
               </p>
             </div>
-          </aside>
+          </article>
         </div>
       </section>
 

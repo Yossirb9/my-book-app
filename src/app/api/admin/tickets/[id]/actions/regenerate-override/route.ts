@@ -8,7 +8,7 @@ export async function POST(
   context: RouteContext<'/api/admin/tickets/[id]/actions/regenerate-override'>
 ) {
   const session = await requireStaffApiUser()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session) return NextResponse.json({ error: 'נדרשת הרשאת צוות.' }, { status: 401 })
   const { id } = await context.params
   const body = await request.json()
 
@@ -35,15 +35,22 @@ export async function POST(
   }
 
   if (!pageId) {
-    return NextResponse.json({ error: 'No page available for override' }, { status: 400 })
+    return NextResponse.json({ error: 'לא נמצא עמוד זמין ליצירה מחדש.' }, { status: 400 })
   }
 
-  const imageUrl = await resolveTicketWithRegenerateOverride({
-    ticketId: id,
-    pageId,
-    prompt: body.prompt,
-    staffUserId: session.staffUser.id,
-  })
+  try {
+    const imageUrl = await resolveTicketWithRegenerateOverride({
+      ticketId: id,
+      pageId,
+      prompt: body.prompt,
+      staffUserId: session.staffUser.id,
+    })
 
-  return NextResponse.json({ imageUrl })
+    return NextResponse.json({ imageUrl })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'היצירה מחדש נכשלה.' },
+      { status: 400 }
+    )
+  }
 }

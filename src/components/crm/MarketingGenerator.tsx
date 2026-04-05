@@ -30,7 +30,7 @@ export default function MarketingGenerator() {
         return
       }
 
-      setMessage('נשמרה טיוטה חדשה במאגר התוכן.')
+      setMessage('נשמרה טיוטת תוכן חדשה במערכת.')
       setTimeout(() => window.location.reload(), 500)
     })
   }
@@ -46,7 +46,7 @@ export default function MarketingGenerator() {
 
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        setExportMessage('ייצוא הקהל נכשל.')
+        setExportMessage('ייצוא קהל היעד נכשל.')
         return
       }
 
@@ -57,22 +57,20 @@ export default function MarketingGenerator() {
       anchor.download = data.fileName || 'audience.csv'
       anchor.click()
       URL.revokeObjectURL(href)
-      setExportMessage('קובץ הקהל נוצר והורד.')
+      setExportMessage('קובץ הקהל נוצר והורד בהצלחה.')
     })
   }
 
   return (
     <div className="space-y-5">
       <form onSubmit={handleGenerate} className="rounded-[1.5rem] border border-coral-100 bg-[#FFF9F0] p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-coral-500">
-          AI content machine
-        </p>
+        <p className="text-xs font-semibold tracking-[0.24em] text-coral-500">מחולל תוכן AI</p>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <select name="type" className="rounded-xl border border-coral-100 px-3 py-2 text-sm">
             <option value="blog_post">מאמר SEO</option>
-            <option value="social_post">פוסט סושיאל</option>
+            <option value="social_post">פוסט לרשתות חברתיות</option>
             <option value="newsletter">ניוזלטר</option>
-            <option value="upsell_insert">דף הורים לספר</option>
+            <option value="upsell_insert">עמוד הורים לספר</option>
           </select>
           <select name="goal" className="rounded-xl border border-coral-100 px-3 py-2 text-sm">
             <option value="sales">קידום מכירות</option>
@@ -87,7 +85,7 @@ export default function MarketingGenerator() {
           />
           <input
             name="segmentDescription"
-            placeholder="הורים שרכשו מתנת סוף שנה"
+            placeholder="הורים שרכשו מתנת סוף שנה בשנה שעברה"
             className="rounded-xl border border-coral-100 px-3 py-2 text-sm md:col-span-2 xl:col-span-4"
           />
         </div>
@@ -104,9 +102,10 @@ export default function MarketingGenerator() {
       </form>
 
       <div className="rounded-[1.5rem] border border-coral-100 bg-white p-4">
-        <p className="text-sm font-black text-[#1a1a2e]">Audience export</p>
+        <p className="text-sm font-black text-[#1a1a2e]">ייצוא קהל יעד</p>
         <p className="mt-2 text-sm leading-7 text-gray-600">
-          ייצוא קהל לקוחות בפורמט CSV לשליחה דרך מערכת חיצונית.
+          ייצוא רשימת לקוחות בפורמט CSV לשליחה דרך מערכת דיוור חיצונית, לפי סגמנט של לקוחות
+          משלמים וחוזרים.
         </p>
         <div className="mt-4 flex items-center gap-3">
           <button
@@ -115,7 +114,7 @@ export default function MarketingGenerator() {
             disabled={isPending}
             className="rounded-full border border-coral-300 px-4 py-2 text-sm font-semibold text-coral-600 disabled:opacity-50"
           >
-            ייצא paying + returning
+            ייצוא קהל משלם וחוזר
           </button>
           {exportMessage ? <p className="text-sm font-semibold text-coral-600">{exportMessage}</p> : null}
         </div>

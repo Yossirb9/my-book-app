@@ -5,14 +5,22 @@ import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 
+const HERO_FEATURES = [
+  'עד 5 דמויות בספר אחד',
+  'ספרים מותאמים אישית לרגעים משמעותיים',
+  '12 עמודי תוכן ו-12 תמונות אישיות',
+  'מוכן בתוך כמה דקות',
+]
+
 const BOOK_PRODUCT = {
-  eyebrow: 'מתנה לרגע',
-  title: 'ספר ילדים אישי',
+  eyebrow: 'הסיפור המשפחתי שלך',
+  title: 'ספר ילדים מותאם אישית',
   description:
-    'יום הולדת, אח חדש, גבורה, פחד שהתגבר עליו — כל רגע משפחתי הופך לסיפור מאויר עם הפנים שלהם.',
+    'אנחנו יוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים, עם תמיכה בעד 5 דמויות והמחשה שמרגישה קרובה באמת למשפחה שלכם.',
   features: [
+    'תמיכה בעד 5 דמויות בספר אחד',
     'איורים מבוססי תמונה אמיתית',
-    '24 עמודים — 12 סצנות מאוירות',
+    '12 עמודי תוכן ו-12 תמונות אישיות',
     'PDF לקריאה ולהדפסה',
   ],
   price: 'מ-₪129',
@@ -108,36 +116,50 @@ export default function HomePageContent() {
   return (
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
 
-      {/* Hero + מוצר ראשי — הכל בסקשן אחד */}
-      <section id="products" className="border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_left,rgba(232,124,83,0.13),transparent_40%),linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
-        <div className="mx-auto max-w-7xl px-4 pt-12 pb-0 md:px-8 md:pt-16">
+      {/* Hero — inverted dark */}
+      <section className="bg-[linear-gradient(160deg,#1a1a2e_0%,#111120_100%)]">
+        <div className="mx-auto max-w-7xl px-4 pt-16 pb-14 md:px-8 md:pt-22 md:pb-18 text-center">
+          <Badge variant="new" className="mb-6 border-white/15 bg-white/8 text-white/80">
+            הסיפור המשפחתי שלך, כספר אישי בעברית
+          </Badge>
+          <h1 className="text-5xl font-black leading-[1.05] text-white md:text-7xl">
+            הסיפור המשפחתי שלך,
+            <br />
+            כספר אישי.
+          </h1>
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 md:text-lg">
+            אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
+            כמו יום הולדת, אח חדש, היריון, התגברות, או כל רגע משפחתי שראוי להפוך לזיכרון.
+          </p>
 
-          {/* כותרת + כפתורים */}
-          <div className="mb-10 text-center">
-            <Badge variant="popular" className="mb-4 border-amber-200 bg-amber-100/90">
-              ספרים ויומנים אישיים בעברית
-            </Badge>
-            <h1 className="text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
-              הילד שלכם הוא הגיבור של החיים שלו.
-            </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-8 text-gray-700 md:text-lg">
-              כל רגע משפחתי הופך לסיפור מאויר עם הפנים שלהם — מוכן לקריאה בתוך כמה דקות.
-            </p>
-            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link href="/create">
-                <Button size="lg" className="sm:w-auto">
-                  צרו ספר ילדים
-                </Button>
-              </Link>
-              <Link href="/#how-it-works">
-                <Button variant="outline" size="lg" className="border-coral-400/90 bg-white/55 sm:w-auto">
-                  ראו איך זה עובד
-                </Button>
-              </Link>
-            </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {HERO_FEATURES.map((f) => (
+              <span key={f} className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75">
+                {f}
+              </span>
+            ))}
           </div>
 
-          {/* כרטיס המוצר — מיד למטה */}
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link href="/create">
+              <Button size="lg" className="sm:w-auto">
+                צרו ספר ילדים
+              </Button>
+            </Link>
+            <Link href="/#how-it-works">
+              <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
+                ראו איך זה עובד
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* מוצר ראשי */}
+      <section id="products" className="border-b border-coral-100/80 bg-[linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
+        <div className="mx-auto max-w-7xl px-4 pt-0 pb-0 md:px-8">
+
+          {/* כרטיס המוצר */}
           <article className="relative overflow-hidden rounded-t-[2rem] border border-b-0 border-coral-100 bg-[#FFF4E6] shadow-[0_-8px_40px_rgba(232,124,83,0.10)]">
             <div className="grid md:grid-cols-2">
               <div className="flex flex-col p-8 md:p-12">

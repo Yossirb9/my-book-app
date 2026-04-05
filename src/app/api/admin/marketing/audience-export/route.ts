@@ -4,7 +4,7 @@ import { exportAudience } from '@/lib/crm/service'
 
 export async function POST(request: NextRequest) {
   const session = await requireStaffApiUser()
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!session) return NextResponse.json({ error: 'נדרשת הרשאת צוות.' }, { status: 401 })
   const body = await request.json()
   const result = await exportAudience({
     ...body,
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   })
 
   if (!result.exportRow) {
-    return NextResponse.json({ error: 'Failed to create export row' }, { status: 500 })
+    return NextResponse.json({ error: 'יצירת קובץ הייצוא נכשלה.' }, { status: 500 })
   }
 
   return NextResponse.json({

@@ -27,7 +27,7 @@ export default function PromotionForm() {
       })
 
       if (!response.ok) {
-        setMessage('לא הצלחנו ליצור קופון.')
+        setMessage('לא הצלחנו ליצור את הקופון.')
         return
       }
 
@@ -38,9 +38,7 @@ export default function PromotionForm() {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-[1.5rem] border border-coral-100 bg-[#FFF9F0] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-coral-500">
-        New promotion
-      </p>
+      <p className="text-xs font-semibold tracking-[0.24em] text-coral-500">קופון חדש</p>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <input
           name="code"
@@ -53,8 +51,8 @@ export default function PromotionForm() {
           <option value="fixed">סכום קבוע</option>
         </select>
         <select name="scope" className="rounded-xl border border-coral-100 px-3 py-2 text-sm">
-          <option value="campaign">קמפיין</option>
-          <option value="single_use">חד פעמי</option>
+          <option value="campaign">קמפיין ציבורי</option>
+          <option value="single_use">חד-פעמי אישי</option>
         </select>
         <input
           name="amount"

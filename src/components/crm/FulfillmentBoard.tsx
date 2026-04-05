@@ -1,8 +1,13 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import { FULFILLMENT_STATUSES, FULFILLMENT_STATUS_LABELS } from '@/lib/crm/constants'
+import {
+  FULFILLMENT_STATUSES,
+  FULFILLMENT_STATUS_LABELS,
+  getBookTypeLabel,
+} from '@/lib/crm/constants'
 import { formatCurrency } from '@/lib/crm/utils'
+import { Json } from '@/lib/supabase/database.types'
 
 type FulfillmentItem = {
   id: string
@@ -24,7 +29,17 @@ type FulfillmentItem = {
   book: {
     id: string
     title: string
+    params?: Json | null
   } | null
+}
+
+function getBookTemplate(record: Json | null | undefined) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    return null
+  }
+
+  const value = 'template' in record ? record.template : null
+  return typeof value === 'string' ? value : null
 }
 
 export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }) {
@@ -58,7 +73,7 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
       })
 
       if (!response.ok) {
-        setMessage('עדכון הסטטוס נכשל.')
+        setMessage('עדכון הסטטוס נכשל. נסי שוב בעוד רגע.')
         return
       }
 
@@ -81,11 +96,9 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
     <div className="space-y-5">
       <div className="flex flex-col gap-3 rounded-[1.5rem] border border-coral-100 bg-[#FFF9F0] p-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-coral-500">
-            Bulk actions
-          </p>
+          <p className="text-xs font-semibold tracking-[0.24em] text-coral-500">פעולות גורפות</p>
           <p className="mt-2 text-sm text-gray-600">
-            נבחרו כרגע {selectedIds.length} הזמנות לעדכון או לייצוא.
+            נבחרו כרגע {selectedIds.length} הזמנות לעדכון סטטוס או לייצוא לבית הדפוס.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -95,7 +108,7 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
             disabled={!selectedIds.length || isPending}
             className="rounded-full bg-coral-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
           >
-            סמן כנשלח לדפוס
+            סמן כהועבר לדפוס
           </button>
           <button
             type="button"
@@ -111,7 +124,7 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
             disabled={!selectedIds.length || isPending}
             className="rounded-full border border-[#1a1a2e]/20 px-4 py-2 text-sm font-semibold text-[#1a1a2e] disabled:opacity-50"
           >
-            ייצוא ZIP + מניפסט
+            ייצוא ZIP ומניפסט
           </button>
         </div>
       </div>
@@ -135,7 +148,7 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
               {column.items.map((item) => (
                 <article
                   key={item.id}
-                  className="rounded-[1.25rem] border border-coral-100 bg-white p-3 shadow-sm"
+                  className="rounded-[1.25rem] border border-coral-100 bg-white p-3"
                 >
                   <label className="flex items-start gap-3">
                     <input
@@ -145,8 +158,8 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
                       className="mt-1 h-4 w-4 rounded border-coral-300"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">
-                        Order {item.order?.order_number || item.id.slice(0, 8)}
+                      <p className="text-xs font-semibold tracking-[0.18em] text-coral-500">
+                        הזמנה #{item.order?.order_number || item.id.slice(0, 8)}
                       </p>
                       <h3 className="mt-2 text-sm font-black text-[#1a1a2e]">
                         {item.book?.title || 'ספר ללא כותרת'}
@@ -156,10 +169,13 @@ export default function FulfillmentBoard({ items }: { items: FulfillmentItem[] }
                           item.shippingAddress?.recipient_name ||
                           item.order?.customer_profiles?.email}
                       </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {item.shippingAddress?.city || 'ללא כתובת'} · {item.print_page_count || 0}{' '}
-                        עמודים · {item.print_binding === 'hard' ? 'כריכה קשה' : 'כריכה רכה'}
-                      </p>
+                      <div className="mt-2 space-y-1 text-xs text-gray-500">
+                        <p>סוג ספר: {getBookTypeLabel(getBookTemplate(item.book?.params))}</p>
+                        <p>
+                          {item.shippingAddress?.city || 'ללא כתובת'} · {item.print_page_count || 0}{' '}
+                          עמודים · {item.print_binding === 'hard' ? 'כריכה קשה' : 'כריכה רכה'}
+                        </p>
+                      </div>
                       <p className="mt-3 text-sm font-semibold text-coral-600">
                         {formatCurrency(item.order?.total_amount || 0)}
                       </p>

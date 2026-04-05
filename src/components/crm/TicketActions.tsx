@@ -32,14 +32,12 @@ export default function TicketActions({ ticketId, bookId }: TicketActionsProps) 
 
   return (
     <div className="mt-4 rounded-[1.25rem] border border-coral-100 bg-[#FFF9F0] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-coral-500">
-        Quick resolutions
-      </p>
+      <p className="text-xs font-semibold tracking-[0.22em] text-coral-500">פעולות מהירות</p>
       <div className="mt-3 grid gap-3 lg:grid-cols-3">
         <div className="rounded-[1rem] border border-coral-100 bg-white p-3">
-          <p className="text-sm font-black text-[#1a1a2e]">Regenerate override</p>
+          <p className="text-sm font-black text-[#1a1a2e]">יצירה מחדש לעמוד</p>
           <p className="mt-2 text-xs leading-6 text-gray-600">
-            משחזר עמוד AI בלי להוריד מכסה ללקוח.
+            מפעיל יצירה מחדש של עמוד AI בלי לפגוע במכסה של הלקוח.
           </p>
           <button
             type="button"
@@ -49,18 +47,18 @@ export default function TicketActions({ ticketId, bookId }: TicketActionsProps) 
                 runAction(
                   `/api/admin/tickets/${ticketId}/actions/regenerate-override`,
                   { pageId: null },
-                  'נוצר override לעמוד הראשון הזמין של הספר.'
+                  'נוצרה יצירה מחדש לעמוד הראשון הזמין בספר.'
                 )
               )
             }
             className="mt-3 rounded-full bg-coral-500 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
           >
-            הרץ override
+            הפעל יצירה מחדש
           </button>
         </div>
 
         <div className="rounded-[1rem] border border-coral-100 bg-white p-3">
-          <p className="text-sm font-black text-[#1a1a2e]">Stripe refund</p>
+          <p className="text-sm font-black text-[#1a1a2e]">זיכוי דרך Stripe</p>
           <input
             value={refundAmount}
             onChange={(event) => setRefundAmount(event.target.value)}
@@ -74,7 +72,7 @@ export default function TicketActions({ ticketId, bookId }: TicketActionsProps) 
                 runAction(
                   `/api/admin/tickets/${ticketId}/actions/refund`,
                   { amount: Number(refundAmount) },
-                  'בוצע ניסיון לזיכוי דרך Stripe.'
+                  'בקשת הזיכוי נשלחה בהצלחה.'
                 )
               )
             }
@@ -85,7 +83,7 @@ export default function TicketActions({ ticketId, bookId }: TicketActionsProps) 
         </div>
 
         <div className="rounded-[1rem] border border-coral-100 bg-white p-3">
-          <p className="text-sm font-black text-[#1a1a2e]">Comp coupon</p>
+          <p className="text-sm font-black text-[#1a1a2e]">קופון פיצוי</p>
           <input
             value={couponAmount}
             onChange={(event) => setCouponAmount(event.target.value)}
@@ -99,7 +97,7 @@ export default function TicketActions({ ticketId, bookId }: TicketActionsProps) 
                 runAction(
                   `/api/admin/tickets/${ticketId}/actions/coupon`,
                   { amount: Number(couponAmount), kind: 'percentage' },
-                  'נוצר קופון פיצוי ונשלח ללקוח.'
+                  'נוצר ונשלח קופון פיצוי אישי ללקוח.'
                 )
               )
             }

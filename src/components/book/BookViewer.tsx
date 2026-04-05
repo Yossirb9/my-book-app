@@ -175,9 +175,31 @@ export default function BookViewer({
   const [bookKey, setBookKey] = useState(0)
   const [flipIdx, setFlipIdx] = useState(0)
   const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [mouseStart, setMouseStart] = useState<number | null>(null)
   const [showEditor, setShowEditor] = useState(false)
   const [localPages, setLocalPages] = useState(pages)
   const [bookOpened, setBookOpened] = useState(false)
+  const [pdfGenerating, setPdfGenerating] = useState(false)
+
+  const handleDownloadPdf = async () => {
+    setPdfGenerating(true)
+    try {
+      const res = await fetch(`/api/books/${book.id}/pdf?type=digital`, { method: 'POST' })
+      const data = await res.json()
+      if (data.url) {
+        const a = document.createElement('a')
+        a.href = data.url
+        a.download = `${book.title}.pdf`
+        a.click()
+      } else {
+        alert('שגיאה ביצירת ה-PDF, נסה שוב')
+      }
+    } catch {
+      alert('שגיאה ביצירת ה-PDF, נסה שוב')
+    } finally {
+      setPdfGenerating(false)
+    }
+  }
 
   // Page structure (mirrored book, LTR internally):
   // 0: Cover    (hard, shown alone → appears on RIGHT after mirror)
@@ -226,6 +248,21 @@ export default function BookViewer({
     return () => { clearTimeout(t); window.removeEventListener('resize', measureBook) }
   }, [measureBook])
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!bookOpened) return
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        bookRef.current?.pageFlip().flipNext()
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        bookRef.current?.pageFlip().flipPrev()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [bookOpened])
+
   /* ── Navigation ──────────────────────────────────────────── */
   const goNext = () => bookRef.current?.pageFlip().flipNext()
   const goPrev = () => bookRef.current?.pageFlip().flipPrev()
@@ -245,21 +282,30 @@ export default function BookViewer({
     setTimeout(() => bookRef.current?.pageFlip().flipNext(), 150)
   }
 
-  // Swipe: left-to-right on mirrored book = advance (RTL next)
+  // Swipe (touch)
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.targetTouches[0].clientX)
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return
     const diff = touchStart - e.changedTouches[0].clientX
-    // In mirrored view, swipe RIGHT→LEFT = go next (Hebrew forward)
     if (Math.abs(diff) > 50) {
-      if (diff > 0) {
-        goNext()
-      } else {
-        goPrev()
-      }
+      if (diff > 0) goPrev()
+      else goNext()
     }
     setTouchStart(null)
   }
+
+  // Mouse drag on the book (replaces react-pageflip's reversed internal drag)
+  const handleMouseDown = (e: React.MouseEvent) => setMouseStart(e.clientX)
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (mouseStart === null) return
+    const diff = mouseStart - e.clientX
+    if (Math.abs(diff) > 30) {
+      if (diff > 0) goPrev()
+      else goNext()
+    }
+    setMouseStart(null)
+  }
+  const handleMouseLeave = () => setMouseStart(null)
 
   const { w: pageW, h: pageH, portrait: isMobile } = bookCfg
   const isCover = flipIdx === 0 || !bookOpened
@@ -286,18 +332,14 @@ export default function BookViewer({
           >
             ✏️ <span className="hidden sm:inline">ערוך</span>
           </button>
-          <a
-            href={book.pdf_digital_url || '#'}
-            download
-            className={cn(
-              'flex items-center gap-1.5 text-xs md:text-sm px-2.5 md:px-3 py-1.5 rounded-lg transition-colors',
-              book.pdf_digital_url
-                ? 'bg-coral-600 hover:bg-coral-500 text-white'
-                : 'bg-white/5 text-white/30 pointer-events-none'
-            )}
+          <button
+            onClick={handleDownloadPdf}
+            disabled={pdfGenerating}
+            className="flex items-center gap-1.5 bg-coral-600 hover:bg-coral-500 disabled:opacity-60 disabled:cursor-wait text-white text-xs md:text-sm px-2.5 md:px-3 py-1.5 rounded-lg transition-colors"
           >
-            ⬇️ <span className="hidden sm:inline">הורד PDF</span>
-          </a>
+            {pdfGenerating ? '⏳' : '⬇️'}
+            <span className="hidden sm:inline">{pdfGenerating ? 'יוצר PDF...' : 'הורד PDF'}</span>
+          </button>
           {book.pdf_print_url && (
             <a
               href={book.pdf_print_url}
@@ -396,6 +438,7 @@ export default function BookViewer({
                     boxShadow: '8px 12px 50px rgba(0,0,0,0.85), -3px 0 8px rgba(0,0,0,0.4)',
                     borderRadius: '3px 6px 6px 3px',
                     overflow: 'hidden',
+                    transform: 'scaleX(-1)',
                   }}
                   onClick={openBook}
                 >
@@ -415,20 +458,25 @@ export default function BookViewer({
             {bookOpened && (
               /* dir="ltr" prevents RTL flex from visually swapping the buttons */
               <div className="flex items-center justify-center gap-2 md:gap-5 w-full h-full" dir="ltr">
-                {/* LEFT button = next page in Hebrew (advance forward) */}
+                {/* LEFT button = previous page */}
                 <button
-                  onClick={goNext}
-                  disabled={isBack}
+                  onClick={goPrev}
+                  disabled={flipIdx <= 0}
                   className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
                   style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
-                  aria-label="עמוד הבא"
+                  aria-label="עמוד קודם"
                 >
                   ‹
                 </button>
 
                 {pageW > 0 && (
                   /* scaleX(-1) mirror: makes LTR book appear RTL (cover on right, pages flip right→left) */
-                  <div style={{ transform: 'scaleX(-1)' }}>
+                  <div
+                    style={{ transform: 'scaleX(-1)', cursor: 'grab' }}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}
+                  >
                     <HTMLFlipBook
                       key={bookKey}
                       ref={bookRef}
@@ -448,7 +496,7 @@ export default function BookViewer({
                       autoSize={false}
                       mobileScrollSupport={false}
                       clickEventForward={true}
-                      useMouseEvents={true}
+                      useMouseEvents={false}
                       swipeDistance={30}
                       showPageCorners={true}
                       disableFlipByClick={false}
@@ -482,13 +530,13 @@ export default function BookViewer({
                   </div>
                 )}
 
-                {/* RIGHT button = previous page */}
+                {/* RIGHT button = next page */}
                 <button
-                  onClick={goPrev}
-                  disabled={flipIdx <= 0}
+                  onClick={goNext}
+                  disabled={isBack}
                   className="shrink-0 text-white/50 hover:text-white disabled:opacity-20 select-none transition-colors"
                   style={{ fontSize: '2.8rem', lineHeight: 1, textShadow: '0 0 20px rgba(255,255,255,0.2)' }}
-                  aria-label="עמוד קודם"
+                  aria-label="עמוד הבא"
                 >
                   ›
                 </button>

@@ -48,7 +48,10 @@ export async function POST(
 
     Font.register({
       family: 'Heebo',
-      src: 'https://fonts.gstatic.com/s/heebo/v26/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EiS2cd5OQf.woff2',
+      fonts: [
+        { src: 'https://fonts.gstatic.com/s/heebo/v28/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EiSyccg.ttf', fontWeight: 400 },
+        { src: 'https://fonts.gstatic.com/s/heebo/v28/NGSpv5_NC0k9P_v6ZUCbLRAHxK1Ebiuccg.ttf', fontWeight: 700 },
+      ],
     })
 
     const styles = StyleSheet.create({
@@ -410,35 +413,105 @@ export async function POST(
     } else {
       // Story book layout
       const coverPage = sortedPages[0]
-      if (coverPage?.image_url) {
-        docChildren.push(
+
+      // Ornament helper (— • —)
+      const ornamentRow = () =>
+        React.createElement(
+          View,
+          { style: { flexDirection: 'row', alignItems: 'center' } },
+          React.createElement(View, { style: { width: 40, height: 1.5, backgroundColor: '#c9a87c' } }),
+          React.createElement(View, { style: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#c9a87c', marginLeft: 5, marginRight: 5 } }),
+          React.createElement(View, { style: { width: 40, height: 1.5, backgroundColor: '#c9a87c' } })
+        )
+
+      // ── Cover page: full image + overlay + double frame + title ──
+      docChildren.push(
+        React.createElement(
+          PDFPage,
+          { key: 'cover', size: pageSize, style: { backgroundColor: '#1a1a2e', padding: 0 } },
+          // Background image
+          coverPage?.image_url
+            ? React.createElement(PDFImage, {
+                src: coverPage.image_url,
+                style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, objectFit: 'cover' },
+              })
+            : null,
+          // Dark overlay
+          React.createElement(View, {
+            style: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'black', opacity: 0.45 },
+          }),
+          // Outer frame (opacity on the view = white at 25%)
+          React.createElement(View, {
+            style: { position: 'absolute', top: 14, left: 14, right: 14, bottom: 14, borderWidth: 1, borderColor: 'white', borderRadius: 8, opacity: 0.25 },
+          }),
+          // Inner frame (opacity on the view = white at 10%)
+          React.createElement(View, {
+            style: { position: 'absolute', top: 22, left: 22, right: 22, bottom: 22, borderWidth: 1, borderColor: 'white', borderRadius: 6, opacity: 0.10 },
+          }),
+          // Title section at bottom
           React.createElement(
-            PDFPage,
-            { key: 'cover', size: pageSize, style: styles.coverPage },
-            React.createElement(PDFImage, { src: coverPage.image_url, style: styles.fullImage })
+            View,
+            { style: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: 52, paddingHorizontal: 40, alignItems: 'center' } },
+            React.createElement(View, { style: { width: 48, height: 1, backgroundColor: 'white', marginBottom: 10, opacity: 0.5 } }),
+            React.createElement(
+              Text,
+              { style: { fontFamily: 'Heebo', fontWeight: 700, fontSize: 30, color: '#ffffff', textAlign: 'center' } },
+              book.title
+            ),
+            React.createElement(View, { style: { width: 48, height: 1, backgroundColor: 'white', marginTop: 10, marginBottom: 6, opacity: 0.5 } }),
+            React.createElement(
+              Text,
+              { style: { fontFamily: 'Heebo', fontSize: 14, color: 'white', textAlign: 'center', opacity: 0.4 } },
+              'ספר אישי'
+            )
           )
         )
-      }
+      )
 
+      // ── Content pages: ALL pages, text first then image ──────────
+      // sortedPages[0] image appears again here (without title) as the image
+      // paired with the first text page — exactly like the book viewer spread.
       for (const page of sortedPages) {
+        // Text page (FIRST)
+        if (page.text) {
+          docChildren.push(
+            React.createElement(
+              PDFPage,
+              { key: `txt-${page.id}`, size: pageSize, style: { backgroundColor: '#fffbf5', padding: 0 } },
+              // Top ornament — fixed position
+              React.createElement(
+                View,
+                { style: { position: 'absolute', top: 36, left: 0, right: 0, alignItems: 'center' } },
+                ornamentRow()
+              ),
+              // Text — centered
+              React.createElement(
+                View,
+                { style: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 56, paddingVertical: 88 } },
+                React.createElement(Text, { style: styles.storyText }, page.text)
+              ),
+              // Bottom ornament + page number — fixed position
+              React.createElement(
+                View,
+                { style: { position: 'absolute', bottom: 28, left: 0, right: 0, alignItems: 'center' } },
+                ornamentRow(),
+                React.createElement(
+                  Text,
+                  { style: { fontFamily: 'Heebo', fontSize: 9, color: '#b8956a', marginTop: 6, textAlign: 'center' } },
+                  String(page.page_number)
+                )
+              )
+            )
+          )
+        }
+
+        // Image page (AFTER text, no title overlay)
         if (page.image_url) {
           docChildren.push(
             React.createElement(
               PDFPage,
               { key: `img-${page.id}`, size: pageSize, style: styles.imagePage },
               React.createElement(PDFImage, { src: page.image_url, style: styles.fullImage })
-            )
-          )
-        }
-
-        if (page.text) {
-          docChildren.push(
-            React.createElement(
-              PDFPage,
-              { key: `txt-${page.id}`, size: pageSize, style: styles.textPage },
-              React.createElement(View, { style: styles.ornamentLine }),
-              React.createElement(Text, { style: styles.storyText }, page.text),
-              React.createElement(Text, { style: styles.pageNumber }, String(page.page_number))
             )
           )
         }
@@ -461,7 +534,7 @@ export async function POST(
 
     const { data: urlData } = supabase.storage.from('book-pdfs').getPublicUrl(filePath)
 
-    return NextResponse.json({ url: urlData.publicUrl })
+    return NextResponse.json({ url: `${urlData.publicUrl}?v=${Date.now()}` })
   } catch (e) {
     console.error('PDF generation error:', e)
     return NextResponse.json({ error: 'PDF generation failed', details: String(e) }, { status: 500 })

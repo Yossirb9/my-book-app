@@ -13,6 +13,31 @@ type CustomerProfile = Tables<'customer_profiles'>
 type Order = Tables<'orders'>
 type Promotion = Tables<'promotions'>
 
+function getObjectValue(record: Json | null | undefined, key: string) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
+    return null
+  }
+
+  return key in record ? record[key] : null
+}
+
+function getJsonString(record: Json | null | undefined, key: string) {
+  const value = getObjectValue(record, key)
+  return typeof value === 'string' ? value : null
+}
+
+function getBookTemplate(record: { params?: Json | null } | null | undefined) {
+  return getJsonString(record?.params, 'template')
+}
+
+function getBookLength(record: { params?: Json | null } | null | undefined) {
+  return getJsonString(record?.params, 'length')
+}
+
+function getOrderItemMetadataValue(orderItem: { metadata?: Json | null } | null | undefined, key: string) {
+  return getJsonString(orderItem?.metadata, key)
+}
+
 export async function ensureCustomerProfileForUser(
   user: User,
   context?: {
@@ -334,6 +359,147 @@ export async function getDashboardData() {
   }
 }
 
+export async function getInsightsData() {
+  const adminSupabase = await createAdminClient()
+  const [
+    { data: books },
+    { data: orders },
+    { data: orderItems },
+    { data: customers },
+    { count: openTickets },
+  ] = await Promise.all([
+    adminSupabase
+      .from('books')
+      .select('id, user_id, title, status, created_at, params')
+      .order('created_at', { ascending: false }),
+    adminSupabase.from('orders').select('id, customer_id, order_type, total_amount, status, created_at'),
+    adminSupabase.from('order_items').select('order_id, book_id, total_amount, metadata'),
+    adminSupabase.from('customer_profiles').select('id, auth_user_id, full_name, email, lifecycle_status'),
+    adminSupabase
+      .from('support_tickets')
+      .select('*', { count: 'exact', head: true })
+      .neq('status', 'resolved'),
+  ])
+
+  const orderById = new Map((orders || []).map((order) => [order.id, order]))
+  const customerById = new Map((customers || []).map((customer) => [customer.id, customer]))
+  const customerByAuthUserId = new Map(
+    (customers || [])
+      .filter((customer) => customer.auth_user_id)
+      .map((customer) => [customer.auth_user_id as string, customer])
+  )
+  const orderItemByBookId = new Map(
+    (orderItems || [])
+      .filter((item) => item.book_id)
+      .map((item) => [item.book_id as string, item])
+  )
+
+  const bookRows = (books || []).map((book) => {
+    const orderItem = orderItemByBookId.get(book.id) || null
+    const order = orderItem ? orderById.get(orderItem.order_id) || null : null
+    const customer =
+      (order?.customer_id ? customerById.get(order.customer_id) : null) ||
+      (book.user_id ? customerByAuthUserId.get(book.user_id) : null) ||
+      null
+    const template = getOrderItemMetadataValue(orderItem, 'template') || getBookTemplate(book)
+    const length = getOrderItemMetadataValue(orderItem, 'length') || getBookLength(book)
+
+    return {
+      id: book.id,
+      title: book.title,
+      status: book.status,
+      created_at: book.created_at,
+      template,
+      length,
+      amount: orderItem?.total_amount || order?.total_amount || 0,
+      orderType: order?.order_type || 'digital',
+      customerName: customer?.full_name || customer?.email || 'לקוח לא מזוהה',
+      customerEmail: customer?.email || '',
+    }
+  })
+
+  const totalBooks = bookRows.length
+  const readyBooks = bookRows.filter((book) => book.status === 'ready').length
+  const failedBooks = bookRows.filter((book) => book.status === 'failed').length
+  const digitalBooks = bookRows.filter((book) => book.orderType === 'digital').length
+  const physicalBooks = bookRows.filter((book) => book.orderType === 'physical').length
+
+  const templatesMap = new Map<string, { template: string; count: number; revenue: number }>()
+  const lengthMap = new Map<string, number>()
+  const statusMap = new Map<string, number>()
+
+  for (const book of bookRows) {
+    const templateKey = book.template || 'unknown'
+    const currentTemplate = templatesMap.get(templateKey) || {
+      template: templateKey,
+      count: 0,
+      revenue: 0,
+    }
+    currentTemplate.count += 1
+    currentTemplate.revenue += book.amount
+    templatesMap.set(templateKey, currentTemplate)
+
+    const lengthKey = book.length || 'unknown'
+    lengthMap.set(lengthKey, (lengthMap.get(lengthKey) || 0) + 1)
+
+    const statusKey = book.status || 'draft'
+    statusMap.set(statusKey, (statusMap.get(statusKey) || 0) + 1)
+  }
+
+  const topTemplates = [...templatesMap.values()]
+    .sort((left, right) => {
+      if (right.count !== left.count) {
+        return right.count - left.count
+      }
+
+      return right.revenue - left.revenue
+    })
+    .slice(0, 6)
+
+  const topTemplate = topTemplates[0] || null
+  const returningCustomers = (customers || []).filter((customer) => customer.lifecycle_status === 'returning').length
+  const payingCustomers = (customers || []).filter((customer) => customer.lifecycle_status === 'paying').length
+  const leads = (customers || []).filter((customer) => customer.lifecycle_status === 'lead').length
+
+  const actionableInsights: string[] = []
+
+  if (topTemplate && totalBooks > 0) {
+    const share = Math.round((topTemplate.count / totalBooks) * 100)
+    actionableInsights.push(`סוג הספר המוביל אחראי לכ-${share}% מהיצירות במערכת.`)
+  }
+
+  if (physicalBooks > 0) {
+    actionableInsights.push(`${physicalBooks} ספרים פיזיים דורשים מעקב הדפסה ומשלוח לעומת ${digitalBooks} ספרים דיגיטליים.`)
+  }
+
+  if (failedBooks > 0) {
+    actionableInsights.push(`יש כרגע ${failedBooks} ספרים שנכשלו ודורשים בדיקת תוכן או AI.`)
+  }
+
+  if (returningCustomers > 0) {
+    actionableInsights.push(`${returningCustomers} לקוחות כבר חזרו להזמנה נוספת, אינדיקציה טובה לשימור.`)
+  }
+
+  return {
+    summary: {
+      totalBooks,
+      readyBooks,
+      failedBooks,
+      digitalBooks,
+      physicalBooks,
+      openTickets: openTickets || 0,
+      payingCustomers,
+      returningCustomers,
+      leads,
+    },
+    topTemplates,
+    lengthBreakdown: [...lengthMap.entries()].map(([length, count]) => ({ length, count })),
+    statusBreakdown: [...statusMap.entries()].map(([status, count]) => ({ status, count })),
+    recentBooks: bookRows.slice(0, 8),
+    actionableInsights,
+  }
+}
+
 export async function listCustomers() {
   const adminSupabase = await createAdminClient()
   const [{ data: customers }, { data: orders }, { data: books }] = await Promise.all([
@@ -371,7 +537,7 @@ export async function getCustomerDetail(customerId: string) {
     await Promise.all([
       adminSupabase
         .from('orders')
-        .select('*, fulfillment_orders(*), shipping_addresses(*), promotions(code)')
+        .select('*, fulfillment_orders(*), shipping_addresses(*), promotions(code), order_items(*)')
         .eq('customer_id', customerId)
         .order('created_at', { ascending: false }),
       adminSupabase
@@ -870,7 +1036,7 @@ export async function resolveTicketWithCoupon(input: {
     .single()
 
   if (!ticket?.customer_profiles) {
-    throw new Error('Ticket customer not found')
+    throw new Error('לא נמצא לקוח מקושר לפנייה.')
   }
 
   const code = `COMP-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
@@ -884,7 +1050,7 @@ export async function resolveTicketWithCoupon(input: {
   })
 
   if (!promotion) {
-    throw new Error('Failed to create compensation coupon')
+    throw new Error('יצירת קופון הפיצוי נכשלה.')
   }
 
   await adminSupabase
@@ -929,16 +1095,16 @@ export async function resolveTicketWithRefund(input: {
     .single()
 
   if (!ticket?.orders) {
-    throw new Error('Ticket order not found')
+    throw new Error('לא נמצאה הזמנה מקושרת לפנייה.')
   }
 
   const order = ticket.orders as Order
   if (order.source !== 'stripe') {
-    throw new Error('Refund is supported only for Stripe-backed orders')
+    throw new Error('אפשר לבצע זיכוי אוטומטי רק להזמנות שחויבו דרך Stripe.')
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Missing Stripe secret key')
+    throw new Error('מפתח Stripe לא הוגדר במערכת הניהול.')
   }
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -995,7 +1161,7 @@ export async function resolveTicketWithRegenerateOverride(input: {
     .single()
 
   if (!ticket?.book_id) {
-    throw new Error('Ticket is not linked to a book')
+    throw new Error('הפנייה אינה מקושרת לספר.')
   }
 
   const imageUrl = await regenerateBookPageImageOverride({
