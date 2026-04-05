@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import Button from '@/components/ui/Button'
+import LogoutButton from '@/components/ui/LogoutButton'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
@@ -79,11 +80,16 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            <Link href="/books">
-              <Button variant="ghost" size="sm" className="rounded-full px-4">
-                הספרים שלי
-              </Button>
-            </Link>
+            <>
+              <Link href="/books">
+                <Button variant="ghost" size="sm" className="rounded-full px-4">
+                  הספרים שלי
+                </Button>
+              </Link>
+              <LogoutButton className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
+                התנתקות
+              </LogoutButton>
+            </>
           ) : (
             <>
               <Link href="/login">
@@ -119,12 +125,17 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
-            <Link
-              href="/books"
-              className="rounded-full border border-coral-200 px-3 py-2 text-xs font-semibold text-coral-700"
-            >
-              הספרים שלי
-            </Link>
+            <>
+              <Link
+                href="/books"
+                className="rounded-full border border-coral-200 px-3 py-2 text-xs font-semibold text-coral-700"
+              >
+                הספרים שלי
+              </Link>
+              <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
+                התנתק
+              </LogoutButton>
+            </>
           ) : (
             <>
               <Link

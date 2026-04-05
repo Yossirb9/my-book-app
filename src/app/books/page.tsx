@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
+import LogoutButton from '@/components/ui/LogoutButton'
 import { buildMetadata } from '@/lib/metadata'
 import { createClient } from '@/lib/supabase/server'
 import { BOOK_STATUS_LABELS, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
@@ -183,6 +184,9 @@ export default async function BooksPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <LogoutButton className="rounded-[1.5rem] border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
+              התנתקות
+            </LogoutButton>
             <Link href="/">
               <Button variant="ghost" size="md">
                 חזרה לאתר
