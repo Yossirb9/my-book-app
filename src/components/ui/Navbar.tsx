@@ -15,6 +15,7 @@ type NavbarProps = {
 const MARKETING_LINKS = [
   { href: '/#how-it-works', label: 'איך זה עובד' },
   { href: '/about', label: 'אנחנו' },
+  { href: '/contact', label: 'צור קשר' },
   { href: '/#faq', label: 'שאלות נפוצות' },
 ]
 
@@ -66,7 +67,7 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
               href={link.href}
               className={cn(
                 'transition-colors hover:text-coral-600',
-                pathname === '/about' && link.href === '/about' && 'text-coral-600'
+                pathname === link.href && 'text-coral-600'
               )}
             >
               {link.label}
@@ -170,7 +171,7 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
               href={link.href}
               className={cn(
                 'whitespace-nowrap transition-colors hover:text-coral-600',
-                pathname === '/about' && link.href === '/about' && 'text-coral-600'
+                pathname === link.href && 'text-coral-600'
               )}
             >
               {link.label}
