@@ -28,13 +28,13 @@ export default function StepCharacters() {
   const characters = params.characters ?? EMPTY_CHARACTERS
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
-  const isValid = characters.length > 0 && characters.every((character) => character.name.trim() && character.imageUrl)
+  const isValid = characters.length > 0 && characters.every((character) => character.name.trim() && character.imageUrl && character.gender)
   const completionText = useMemo(() => {
     if (!characters.length) {
       return 'עדיין לא הוספתם דמויות. התחילו בדמות הראשית של הספר.'
     }
 
-    const complete = characters.filter((character) => character.name.trim() && character.imageUrl).length
+    const complete = characters.filter((character) => character.name.trim() && character.imageUrl && character.gender).length
     return `${complete} מתוך ${characters.length} דמויות מוכנות ליצירה`
   }, [characters])
 
@@ -103,6 +103,7 @@ export default function StepCharacters() {
               const missing: string[] = []
               if (!character.name.trim()) missing.push('שם')
               if (!character.imageUrl) missing.push('תמונה')
+              if (!character.gender) missing.push('בן/בת')
 
               return (
                 <article
@@ -148,6 +149,33 @@ export default function StepCharacters() {
                       >
                         {character.imageUrl ? 'החלפת תמונה' : 'בחירת תמונה'}
                       </button>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateCharacter(character.id, { gender: 'boy' })}
+                          className={cn(
+                            'flex-1 rounded-2xl border-2 py-2 text-sm font-bold transition-all',
+                            character.gender === 'boy'
+                              ? 'border-coral-300 bg-coral-50 text-coral-700'
+                              : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                          )}
+                        >
+                          בן
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateCharacter(character.id, { gender: 'girl' })}
+                          className={cn(
+                            'flex-1 rounded-2xl border-2 py-2 text-sm font-bold transition-all',
+                            character.gender === 'girl'
+                              ? 'border-coral-300 bg-coral-50 text-coral-700'
+                              : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
+                          )}
+                        >
+                          בת
+                        </button>
+                      </div>
                     </div>
 
                     <div className="min-w-0">

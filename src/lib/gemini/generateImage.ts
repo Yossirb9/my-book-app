@@ -29,7 +29,9 @@ export async function generatePageImage(
 
   const charList = sceneCharacters.map((c) => {
     const hasRef = relevantRefs.some((r) => r.name.trim().toLowerCase() === c.name.trim().toLowerCase())
-    return `- ${c.name}${c.description ? ' (' + c.description + ')' : ''}${hasRef ? ' ← REFERENCE PHOTO ATTACHED' : ''}`
+    const genderStr = c.gender === 'boy' ? 'male' : c.gender === 'girl' ? 'female' : ''
+    const desc = [genderStr, c.description].filter(Boolean).join(', ')
+    return `- ${c.name}${desc ? ' (' + desc + ')' : ''}${hasRef ? ' ← REFERENCE PHOTO ATTACHED' : ''}`
   }).join('\n')
 
   const format = params.format === 'square' ? 'square 1:1 ratio' : 'portrait A4 ratio'

@@ -4,18 +4,23 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import CreateShell from '@/components/create/CreateShell'
+import { cn } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { useCreateBookStore } from '@/store/createBookStore'
 import {
   BOOK_PRICES,
-  DIRECTION_LABELS,
+  BookFormat,
   JOURNAL_PRICE,
-  LENGTH_PAGES,
   OrderDraftInput,
   TEMPLATE_LABELS,
 } from '@/types'
+
+const formats: { id: BookFormat; label: string; hint: string }[] = [
+  { id: 'square',   label: 'מרובע',   hint: 'נוח למסך ולמתנה אישית.' },
+  { id: 'portrait', label: 'לאורך',   hint: 'מרגיש כמו ספר ילדים קלאסי.' },
+]
 
 const nextSteps = [
   'אנחנו פותחים הזמנה מסודרת ושומרים אותה גם במערכת ה-CRM.',
@@ -56,6 +61,7 @@ export default function StepPayment() {
     setShowAuthGate,
     showAuthGate,
     setDeliveryOption,
+    setFormat,
     setOrderDraft,
   } = useCreateBookStore()
   const router = useRouter()
@@ -71,9 +77,7 @@ export default function StepPayment() {
       : BOOK_PRICES.short
   const totalPagesLabel = isJournal
     ? '30 עמודים · 5 פרקים'
-    : params.length
-      ? LENGTH_PAGES[params.length].label
-      : LENGTH_PAGES.short.label
+    : '12 עמודי תוכן ו-12 תמונות אישיות'
   const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
   const estimatedTime = useMemo(() => {
     if (isJournal) return 'כ-6 דקות'
@@ -112,6 +116,11 @@ export default function StepPayment() {
   const handleConfirm = async () => {
     if (!isAuthenticated) {
       setShowAuthGate(true)
+      return
+    }
+
+    if (!params.format) {
+      setError('אנא בחרו פורמט לספר.')
       return
     }
 
@@ -178,6 +187,31 @@ export default function StepPayment() {
     >
       <div className="grid gap-6 2xl:grid-cols-[1.08fr_0.92fr]">
         <section className="space-y-5">
+
+          {/* פורמט הספר */}
+          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
+            <h2 className="text-2xl font-black text-[#161625]">פורמט הספר</h2>
+            <p className="mt-1 text-sm text-gray-500">כך הספר ירגיש במסך ובקובץ הסופי.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {formats.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setFormat(f.id)}
+                  className={cn(
+                    'rounded-[1.75rem] border p-5 text-right transition-all',
+                    params.format === f.id
+                      ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
+                      : 'border-black/5 bg-[#FFF9F0] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
+                  )}
+                >
+                  <p className="text-lg font-black text-[#161625]">{f.label}</p>
+                  <p className="mt-1 text-sm text-gray-500">{f.hint}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+
           <section className="overflow-hidden rounded-[2.2rem] border border-black/5 shadow-sm">
             <div className="grid gap-0 xl:grid-cols-[1.05fr_0.95fr]">
               <div className="bg-[linear-gradient(180deg,#171925_0%,#10111a_100%)] p-6 text-white lg:p-8">
@@ -217,11 +251,6 @@ export default function StepPayment() {
                   <h3 className="mt-3 text-2xl font-black text-[#161625]">
                     {params.template ? TEMPLATE_LABELS[params.template] : 'ספר אישי'}
                   </h3>
-                  <p className="mt-2 text-sm leading-7 text-gray-600">
-                    {params.emotionalDirection
-                      ? DIRECTION_LABELS[params.emotionalDirection]
-                      : 'הטון יוגדר לפי הבחירה שלכם מהשלב הקודם.'}
-                  </p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     {params.characters?.map((character) => (
                       <span key={character.id} className="rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-coral-700">
@@ -244,11 +273,8 @@ export default function StepPayment() {
                 </p>
               </div>
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">אורך וסגנון</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">
-                  {totalPagesLabel}
-                  {params.emotionalDirection ? ` · ${DIRECTION_LABELS[params.emotionalDirection]}` : ''}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">עמודים ותמונות</p>
+                <p className="mt-2 text-lg font-black text-[#161625]">{totalPagesLabel}</p>
               </div>
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">דמויות</p>
@@ -256,9 +282,9 @@ export default function StepPayment() {
                 <p className="mt-1 text-sm text-gray-500">{mainCharacter || 'ללא שם ראשי'} · תמונה אחת לכל דמות</p>
               </div>
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">מסר והקשר</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">מסר</p>
                 <p className="mt-2 text-lg font-black text-[#161625]">
-                  {params.relationship || 'לא הוגדר עדיין קשר בין הדמויות'}
+                  {params.desiredMessage || 'לא הוגדר מסר'}
                 </p>
                 <p className="mt-1 text-sm text-gray-500">{params.includeNikud ? 'עם ניקוד' : 'ללא ניקוד'}</p>
               </div>

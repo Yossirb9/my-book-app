@@ -7,7 +7,7 @@ import { StepProgress } from '@/components/ui/StepProgress'
 import { CREATE_STEP_DETAILS } from '@/lib/createFlow'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
+import { TEMPLATE_LABELS } from '@/types'
 
 type CreateShellProps = {
   step: number
@@ -72,10 +72,6 @@ export default function CreateShell({
             <div className="mt-8 space-y-3">
               <SummaryRow label="נושא" value={params.template ? TEMPLATE_LABELS[params.template] : 'עדיין לא נבחר'} />
               <SummaryRow label="דמות ראשית" value={mainCharacter || 'נוסיף אותה בשלב הבא'} />
-              <SummaryRow
-                label="אורך"
-                value={params.length ? LENGTH_PAGES[params.length].label : 'נגדיר את זה ממש עכשיו'}
-              />
             </div>
           </div>
         </aside>

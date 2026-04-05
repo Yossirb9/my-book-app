@@ -5,7 +5,7 @@ import CreateShell from '@/components/create/CreateShell'
 import { Textarea } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { AgeGroup, BookFormat, BookParams, JOURNAL_TIME_LABELS } from '@/types'
+import { AgeGroup, BookParams, JOURNAL_TIME_LABELS } from '@/types'
 
 // ---------------------------------------------------------------
 // נתוני בחירה
@@ -18,11 +18,6 @@ const ageGroups: { id: AgeGroup; label: string; hint: string }[] = [
   { id: '9+',  label: '9+',   hint: 'סיפור עשיר ומורכב' },
 ]
 
-const formats: { id: BookFormat; label: string; hint: string }[] = [
-  { id: 'square',   label: 'מרובע',   hint: 'נוח למסך ולמתנה אישית.' },
-  { id: 'portrait', label: 'לאורך',   hint: 'מרגיש כמו ספר ילדים קלאסי.' },
-]
-
 const timePeriods = Object.entries(JOURNAL_TIME_LABELS) as Array<['year' | 'quarter' | 'month', string]>
 
 // ---------------------------------------------------------------
@@ -30,14 +25,14 @@ const timePeriods = Object.entries(JOURNAL_TIME_LABELS) as Array<['year' | 'quar
 // ---------------------------------------------------------------
 
 export default function StepDetails() {
-  const { nextStep, prevStep, params, setAgeGroup, setFormat, setPersonalization } =
+  const { nextStep, prevStep, params, setAgeGroup, setPersonalization } =
     useCreateBookStore()
 
   const isJournal = params.template === 'emotional_journal'
 
   const isValid = isJournal
     ? Boolean(params.ageGroup && params.journalTimePeriod && params.journalChildTraits?.trim())
-    : Boolean(params.ageGroup && params.format)
+    : Boolean(params.ageGroup)
 
   return (
     <CreateShell
@@ -64,7 +59,6 @@ export default function StepDetails() {
           params={params}
           setPersonalization={setPersonalization}
           setAgeGroup={setAgeGroup}
-          setFormat={setFormat}
         />
       )}
     </CreateShell>
@@ -79,62 +73,52 @@ function BookDetails({
   params,
   setPersonalization,
   setAgeGroup,
-  setFormat,
 }: {
   params: Partial<BookParams>
   setPersonalization: (data: Partial<BookParams>) => void
   setAgeGroup: (a: AgeGroup) => void
-  setFormat: (f: BookFormat) => void
 }) {
   return (
     <div className="space-y-10">
 
-      {/* גיל + פורמט */}
-      <section className="grid gap-6 xl:grid-cols-2">
-
-        {/* גיל יעד */}
-        <div className="space-y-3">
-          <SectionHeader title="גיל יעד" hint="מותאמת רמת השפה, קצב הקריאה ואורך המשפטים." />
-          <div className="grid grid-cols-2 gap-3">
-            {ageGroups.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setAgeGroup(a.id)}
-                className={cn(
-                  'rounded-[1.75rem] border p-4 text-right transition-all',
-                  params.ageGroup === a.id
-                    ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
-                    : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
-                )}
-              >
-                <p className="text-xl font-black text-[#161625]">{a.label}</p>
-                <p className="mt-1 text-xs leading-5 text-gray-500">{a.hint}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* פורמט */}
-        <div className="space-y-3">
-          <SectionHeader title="פורמט הספר" hint="כך הספר ירגיש במסך ובקובץ הסופי." />
-          <div className="grid gap-3">
-            {formats.map((f) => (
-              <OptionCard
-                key={f.id}
-                selected={params.format === f.id}
-                onClick={() => setFormat(f.id)}
-                title={f.label}
-                hint={f.hint}
-              />
-            ))}
-          </div>
+      {/* גיל יעד */}
+      <section>
+        <SectionHeader title="גיל יעד" hint="מותאמת רמת השפה, קצב הקריאה ואורך המשפטים." />
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {ageGroups.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => setAgeGroup(a.id)}
+              className={cn(
+                'rounded-[1.75rem] border p-4 text-right transition-all',
+                params.ageGroup === a.id
+                  ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
+                  : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
+              )}
+            >
+              <p className="text-xl font-black text-[#161625]">{a.label}</p>
+              <p className="mt-1 text-xs leading-5 text-gray-500">{a.hint}</p>
+            </button>
+          ))}
         </div>
       </section>
 
       {/* לב הסיפור */}
       <section className="space-y-4">
         <SectionHeader title="לב הסיפור" hint="הפרטים האלו הם מה שגורם לספר להרגיש אמיתי ואישי." />
+
+        <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
+          <Textarea
+            label="פרטים אישיים שנרצה לשלב"
+            rows={4}
+            placeholder="תחביבים, חיות מחמד, בדיחות פנימיות, מאכל אהוב, מקום אהוב..."
+            value={params.personalDetails || ''}
+            onChange={(e) => setPersonalization({ personalDetails: e.target.value })}
+            helperText={`לא חובה, אבל יוסיף לסיפור האישי · ${(params.personalDetails || '').length}/200`}
+            maxLength={200}
+          />
+        </div>
 
         <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
           <Textarea
@@ -146,49 +130,30 @@ function BookDetails({
             helperText="לא חובה, אבל עוזר לנו לדייק את הלב של העלילה."
           />
         </div>
-
-        <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-          <Textarea
-            label="פרטים אישיים שנרצה לשלב"
-            rows={4}
-            placeholder="תחביבים, חיות מחמד, בדיחות פנימיות, מאכל אהוב, מקום אהוב..."
-            value={params.personalDetails || ''}
-            onChange={(e) => setPersonalization({ personalDetails: e.target.value })}
-            helperText={`${(params.personalDetails || '').length}/200`}
-            maxLength={200}
-          />
-        </div>
       </section>
 
       {/* ניקוד */}
       <section>
-        <div className="rounded-[2rem] border border-black/5 bg-[#171925] p-5 text-white shadow-[0_20px_40px_rgba(23,25,37,0.18)]">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-black">ניקוד בטקסט</h3>
-              <p className="mt-2 text-sm leading-6 text-white/70">מומלץ בעיקר לקהל צעיר או להקראה משותפת.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setPersonalization({ includeNikud: !params.includeNikud })}
+        <div className="flex items-center justify-between gap-4 rounded-[2rem] border border-black/5 bg-white px-5 py-4 shadow-sm">
+          <div>
+            <p className="text-sm font-semibold text-gray-700">ניקוד בטקסט</p>
+            <p className="text-xs text-gray-400">מומלץ לקהל צעיר או להקראה משותפת</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPersonalization({ includeNikud: !params.includeNikud })}
+            className={cn(
+              'relative h-7 w-14 shrink-0 rounded-full transition-colors',
+              params.includeNikud ? 'bg-coral-500' : 'bg-gray-200'
+            )}
+          >
+            <span
               className={cn(
-                'relative h-8 w-16 shrink-0 rounded-full transition-colors',
-                params.includeNikud ? 'bg-coral-500' : 'bg-white/20'
+                'absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all',
+                params.includeNikud ? 'right-0.5' : 'left-0.5'
               )}
-            >
-              <span
-                className={cn(
-                  'absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all',
-                  params.includeNikud ? 'right-1' : 'left-1'
-                )}
-              />
-            </button>
-          </div>
-          <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-            <p className="text-sm leading-7 text-white/70">
-              אם אתם מקריאים לילד צעיר או רוצים טקסט נגיש יותר, ניקוד יכול להפוך את הקריאה להרבה יותר נעימה.
-            </p>
-          </div>
+            />
+          </button>
         </div>
       </section>
 

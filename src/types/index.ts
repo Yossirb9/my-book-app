@@ -50,6 +50,7 @@ export interface Character {
   id: string
   name: string
   role: 'main' | 'secondary'
+  gender?: 'boy' | 'girl'
   imageUrl?: string
   description?: string
   characterPrompt?: string
