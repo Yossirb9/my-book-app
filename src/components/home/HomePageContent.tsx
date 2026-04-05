@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import { BOOK_CATEGORIES } from '@/lib/bookTemplates'
 
 const HERO_FEATURES = [
   'עד 5 דמויות בספר אחד',
@@ -12,19 +13,7 @@ const HERO_FEATURES = [
 ]
 
 const BOOK_PRODUCT = {
-  eyebrow: 'הסיפור המשפחתי שלך',
-  title: 'ספר ילדים מותאם אישית',
-  description:
-    'אנחנו יוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים, עם תמיכה בעד 5 דמויות והמחשה שמרגישה קרובה באמת למשפחה שלכם.',
-  features: [
-    'תמיכה בעד 5 דמויות בספר אחד',
-    'איורים מבוססי תמונה אמיתית',
-    '12 עמודי תוכן ו-12 תמונות אישיות',
-    'PDF לקריאה ולהדפסה',
-  ],
-  price: 'מ-₪129',
-  cta: 'צרו ספר ילדים',
-  href: '/create',
+  price: 'מ-129₪',
   image: '/1.png',
   imageAlt: 'ילדה בתוך ספר קסום',
 }
@@ -32,13 +21,14 @@ const BOOK_PRODUCT = {
 const JOURNAL_PRODUCT = {
   badge: 'חדש',
   eyebrow: 'מוצר שגדל עם הילד',
-  title: 'יומן העצמה המשפחתי',
-  description: 'לא סיפור — תיעוד. שאלות שיח, משפטי כוח, רגעי גאווה וזיכרונות. מוצר שמשפחות שומרות שנים.',
-  price: 'מ-₪199',
+  title: 'יומן ההעצמה המשפחתי',
+  description:
+    'לא סיפור אלא תיעוד. שאלות שיח, משפטי כוח, רגעי גאווה וזיכרונות. מוצר שמשפחות שומרות שנים.',
+  price: 'מ-199₪',
   cta: 'צרו יומן העצמה',
-  href: '/create',
+  href: '/create?template=emotional_journal',
   image: '/2.png',
-  imageAlt: 'ילדה גיבורת-על על עננים',
+  imageAlt: 'ילדה גיבורת על על עננים',
 }
 
 const JOURNAL_CHAPTERS = [
@@ -82,11 +72,11 @@ const HOW_IT_WORKS = [
   },
   {
     title: 'מוסיפים את הפרטים שעושים את ההבדל',
-    description: 'כאן מוסיפים את הלב של הסיפור: המסר, הקשר המשפחתי והפרטים הקטנים שעושים את ההבדל.',
+    description: 'כאן מוסיפים את הלב של הסיפור: המסר, הקשר המשפחתי והפרטים הקטנים שהופכים את הכל לאישי.',
   },
   {
     title: 'מאשרים ומחכים כמה דקות',
-    description: 'בתוך כמה דקות הספר מוכן — כתוב, מאויר ומוכן ל-PDF. אפשר לקרוא, להוריד ולעדכן.',
+    description: 'בתוך כמה דקות הספר מוכן, כתוב, מאויר ומוכן ל-PDF. אפשר לקרוא, להוריד ולעדכן.',
   },
 ]
 
@@ -111,19 +101,66 @@ const FAQ = [
   },
 ]
 
+const CATEGORY_STYLES: Record<
+  string,
+  {
+    shell: string
+    accent: string
+    chip: string
+    button: string
+  }
+> = {
+  popular: {
+    shell: 'border-coral-100 bg-[linear-gradient(180deg,#fffdf9_0%,#fff4e6_100%)]',
+    accent: 'text-coral-600',
+    chip: 'bg-coral-50 text-coral-700',
+    button: 'bg-coral-500 text-white hover:bg-coral-400',
+  },
+  transitions: {
+    shell: 'border-amber-100 bg-[linear-gradient(180deg,#fffef8_0%,#fff7df_100%)]',
+    accent: 'text-amber-700',
+    chip: 'bg-amber-50 text-amber-700',
+    button: 'bg-amber-500 text-white hover:bg-amber-400',
+  },
+  family: {
+    shell: 'border-rose-100 bg-[linear-gradient(180deg,#fffdfd_0%,#fff1f2_100%)]',
+    accent: 'text-rose-700',
+    chip: 'bg-rose-50 text-rose-700',
+    button: 'bg-rose-500 text-white hover:bg-rose-400',
+  },
+  adventure: {
+    shell: 'border-sky-100 bg-[linear-gradient(180deg,#fbfdff_0%,#eef8ff_100%)]',
+    accent: 'text-sky-700',
+    chip: 'bg-sky-50 text-sky-700',
+    button: 'bg-sky-500 text-white hover:bg-sky-400',
+  },
+  resilience: {
+    shell: 'border-emerald-100 bg-[linear-gradient(180deg,#fbfefc_0%,#eefbf4_100%)]',
+    accent: 'text-emerald-700',
+    chip: 'bg-emerald-50 text-emerald-700',
+    button: 'bg-emerald-500 text-white hover:bg-emerald-400',
+  },
+  journal: {
+    shell: 'border-teal-100 bg-[linear-gradient(180deg,#f7fffe_0%,#eafcf9_100%)]',
+    accent: 'text-teal-700',
+    chip: 'bg-teal-50 text-teal-700',
+    button: 'bg-teal-500 text-white hover:bg-teal-400',
+  },
+}
+
+function buildTemplateHref(templateId: string) {
+  return `/create?template=${encodeURIComponent(templateId)}`
+}
+
 export default function HomePageContent() {
   return (
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
-
-      {/* Hero — inverted dark */}
       <section className="bg-[linear-gradient(160deg,#1a1a2e_0%,#111120_100%)]">
-        <div className="mx-auto max-w-7xl px-4 pt-16 pb-14 md:px-8 md:pt-22 md:pb-18">
+        <div className="mx-auto max-w-7xl px-4 pb-14 pt-16 md:px-8 md:pb-18 md:pt-22">
           <div className="grid items-center gap-8 md:grid-cols-2 md:[direction:ltr]">
             <div className="text-center md:[direction:rtl] md:text-right">
-              <h1 className="text-5xl font-black leading-[1.05] text-white md:text-7xl">
-                הסיפור המשפחתי שלך,
-                <br />
-                כספר אישי.
+              <h1 className="text-[clamp(2rem,4.9vw,5.4rem)] font-black leading-[1.02] text-white whitespace-nowrap">
+                הסיפור המשפחתי שלך כספר אישי.
               </h1>
               <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 md:mx-0 md:text-lg">
                 אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
@@ -131,27 +168,33 @@ export default function HomePageContent() {
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-                {HERO_FEATURES.map((f) => (
-                  <span key={f} className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75">
-                    {f}
+                {HERO_FEATURES.map((feature) => (
+                  <span
+                    key={feature}
+                    className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75"
+                  >
+                    {feature}
                   </span>
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
-                <Link href="/#how-it-works">
-                  <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
-                    ראו איך זה עובד
-                  </Button>
-                </Link>
-
-                <div className="flex flex-col items-center gap-3 sm:flex-row md:justify-start">
+              <div className="mt-8 flex flex-col items-center gap-4 md:items-start">
+                <p className="text-3xl font-black text-coral-300">{BOOK_PRODUCT.price}</p>
+                <div className="flex flex-col items-center gap-4 sm:flex-row md:items-center">
                   <Link href="/create">
                     <Button size="lg" className="sm:w-auto">
-                      צרו ספר ילדים
+                      צרו ספר
                     </Button>
                   </Link>
-                  <p className="text-3xl font-black text-coral-300">{BOOK_PRODUCT.price}</p>
+                  <Link href="/#how-it-works">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto"
+                    >
+                      ראו איך זה עובד
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -169,12 +212,11 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* איך זה עובד */}
       <section id="how-it-works" className="border-y border-coral-100 bg-white/70">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
           <div className="mb-8 max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">איך זה עובד</p>
-            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">אתם מספרים — אנחנו בונים.</h2>
+            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">אתם מספרים, אנחנו בונים.</h2>
             <p className="mt-3 text-sm leading-7 text-gray-600">מגדירים, מוסיפים תמונות, ומחכים כמה דקות.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-4">
@@ -191,7 +233,84 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* מידע ו-FAQ */}
+      <section className="border-b border-coral-100 bg-[#fff8f0]">
+        <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
+          <div className="mb-8 max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">קטגוריות הספרים</p>
+            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">כל הקטגוריות של המערכת, במקום אחד.</h2>
+            <p className="mt-3 text-sm leading-7 text-gray-600">
+              בוחרים קטגוריה שמתאימה לרגע שלכם, רואים את כל התבניות שבתוכה, ומתחילים ישר את היצירה.
+            </p>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-2">
+            {BOOK_CATEGORIES.map((category) => {
+              const style = CATEGORY_STYLES[category.id] || CATEGORY_STYLES.popular
+              const firstTemplate = category.templates[0]
+
+              return (
+                <article
+                  key={category.id}
+                  className={`rounded-[2rem] border p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_44px_rgba(23,25,37,0.08)] ${style.shell}`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className={`text-sm font-semibold uppercase tracking-[0.22em] ${style.accent}`}>
+                        {category.label}
+                      </p>
+                      <h3 className="mt-3 text-2xl font-black text-[#1a1a2e]">{category.hint}</h3>
+                    </div>
+                    <Link href={buildTemplateHref(firstTemplate.id)}>
+                      <Button size="sm" className={style.button}>
+                        התחילו מהקטגוריה
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {category.templates.map((template) => (
+                      <Link
+                        key={template.id}
+                        href={buildTemplateHref(template.id)}
+                        className={`rounded-full px-3 py-2 text-sm font-semibold transition-transform hover:-translate-y-0.5 ${style.chip}`}
+                      >
+                        {template.title}
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                    {category.templates.map((template) => (
+                      <Link
+                        key={`${category.id}-${template.id}`}
+                        href={buildTemplateHref(template.id)}
+                        className="rounded-[1.4rem] border border-white/80 bg-white/80 p-4 transition-all hover:border-coral-200 hover:shadow-sm"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-base font-black text-[#1a1a2e]">{template.title}</p>
+                            <p className="mt-2 text-sm leading-6 text-gray-600">{template.desc}</p>
+                          </div>
+                          {template.badge ? (
+                            <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${style.chip}`}>
+                              {template.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-4 flex items-center justify-between">
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${style.chip}`}>{template.price}</span>
+                          <span className={`text-sm font-semibold ${style.accent}`}>בחרו והתחילו</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       <section className="border-y border-coral-100 bg-[#fff4e7]">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 md:grid-cols-[0.95fr_1.05fr] md:px-8 md:py-16">
           <article className="rounded-[2rem] border border-white bg-white p-6 shadow-sm">
@@ -199,7 +318,7 @@ export default function HomePageContent() {
             <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">אנחנו רוצים שתדעו בדיוק מה קורה עם המידע שלכם.</h2>
             <ul className="mt-6 space-y-4 text-sm leading-7 text-gray-600">
               <li>התמונות שאתם מעלים משמשות ליצירת הספר שלכם בלבד, ולא נשמרות או משותפות.</li>
-              <li>הספר נשאר אצלכם — שמור בחשבון, נגיש בכל עת, ואפשר להוריד בכל רגע.</li>
+              <li>הספר נשאר אצלכם, שמור בחשבון, נגיש בכל עת, ואפשר להוריד בכל רגע.</li>
               <li>אם משהו לא יצא כמו שציפיתם, יש אפשרות לעדכן ולהפיק מחדש.</li>
             </ul>
           </article>
@@ -215,14 +334,13 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* יומן העצמה — נפרד, בתחתית */}
       <section id="journal" className="bg-[#FFF9F0]">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
           <div className="mb-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-600">מוצר נוסף — לצד הספר</p>
-            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">יומן העצמה המשפחתי</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-teal-600">מוצר נוסף, לצד הספר</p>
+            <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">יומן ההעצמה המשפחתי</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
-              לא סיפור — תיעוד. שאלות שיח, משפטי כוח, רגעי גאווה וזיכרונות. מוצר שמשפחות שומרות שנים.
+              לא סיפור אלא תיעוד. שאלות שיח, משפטי כוח, רגעי גאווה וזיכרונות. מוצר שמשפחות שומרות שנים.
             </p>
           </div>
 
@@ -240,15 +358,15 @@ export default function HomePageContent() {
               <p className="mt-2 text-sm leading-7 text-white/60">חוויה משפחתית · ערך רגשי · תיעוד חיים · העצמה</p>
 
               <div className="mt-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-400">מה בפנים — 5 חלקים</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-400">מה בפנים, 5 חלקים</p>
                 <div className="mt-3 space-y-2">
-                  {JOURNAL_CHAPTERS.map((ch) => (
-                    <div key={ch.num} className="rounded-xl bg-white/[0.07] px-4 py-3">
+                  {JOURNAL_CHAPTERS.map((chapter) => (
+                    <div key={chapter.num} className="rounded-xl bg-white/[0.07] px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-teal-400">{ch.num}</span>
-                        <span className="text-sm font-bold text-white">{ch.title}</span>
+                        <span className="text-xs font-black text-teal-400">{chapter.num}</span>
+                        <span className="text-sm font-bold text-white">{chapter.title}</span>
                       </div>
-                      <p className="mt-0.5 text-xs leading-5 text-white/50">{ch.items}</p>
+                      <p className="mt-0.5 text-xs leading-5 text-white/50">{chapter.items}</p>
                     </div>
                   ))}
                 </div>
@@ -261,9 +379,9 @@ export default function HomePageContent() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {JOURNAL_FOR.map((t) => (
-                  <span key={t} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
-                    {t}
+                {JOURNAL_FOR.map((tag) => (
+                  <span key={tag} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">
+                    {tag}
                   </span>
                 ))}
               </div>
@@ -290,7 +408,6 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="bg-[#1a1a2e]">
         <div className="mx-auto max-w-5xl px-4 py-14 text-center md:px-8 md:py-20">
           <h2 className="text-3xl font-black text-white md:text-5xl">תנו לילד שלכם להיות הגיבור.</h2>

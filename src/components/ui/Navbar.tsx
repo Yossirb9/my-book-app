@@ -43,12 +43,12 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/88 shadow-[0_10px_35px_rgba(26,26,46,0.06)] backdrop-blur-xl">
       <div className="mx-auto hidden max-w-7xl items-center justify-between px-8 py-4 md:flex">
-        <Link href="/" className="flex items-center gap-3 text-coral-600">
+        <Link href="/" className="flex items-center gap-3 text-coral-600" dir="rtl">
           <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-coral-50 text-sm font-black shadow-inner shadow-coral-100">
             ספר
           </span>
-          <div className="text-right">
-            <span className="block text-lg font-black text-gray-900">הספר שלי</span>
+          <div className="text-right" dir="rtl">
+            <span className="block text-lg font-black text-gray-900 [unicode-bidi:isolate]">הספר שלי</span>
             <span className="block text-xs text-gray-500">ספרי ילדים אישיים בעברית</span>
           </div>
         </Link>
@@ -105,12 +105,12 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
       <div className="px-4 py-3 md:hidden">
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 text-coral-600">
+          <Link href="/" className="flex items-center gap-2 text-coral-600" dir="rtl">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral-50 text-sm font-black shadow-inner shadow-coral-100">
               ספר
             </span>
-            <div className="text-right">
-              <span className="block text-sm font-black text-gray-900">הספר שלי</span>
+            <div className="text-right" dir="rtl">
+              <span className="block text-sm font-black text-gray-900 [unicode-bidi:isolate]">הספר שלי</span>
               <span className="block text-[11px] text-gray-500">ספר אישי בעברית</span>
             </div>
           </Link>
