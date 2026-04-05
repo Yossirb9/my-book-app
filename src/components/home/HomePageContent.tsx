@@ -116,15 +116,51 @@ export default function HomePageContent() {
   return (
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
 
-      {/* Hero + מוצר ראשי */}
-      <section
-        id="products"
-        className="border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_left,rgba(232,124,83,0.13),transparent_40%),linear-gradient(160deg,#1a1a2e_0%,#111120_42%,#FFF4E6_42%,#FFF9F0_100%)]"
-      >
-        <div className="mx-auto max-w-7xl px-4 pt-12 pb-0 md:px-8 md:pt-16">
-          <article className="relative overflow-hidden rounded-t-[2rem] border border-b-0 border-coral-100 bg-[linear-gradient(135deg,rgba(26,26,46,0.98)_0%,rgba(26,26,46,0.98)_52%,#FFF4E6_52%,#FFF4E6_100%)] shadow-[0_-8px_40px_rgba(232,124,83,0.10)]">
-            <div className="grid items-center gap-0 md:grid-cols-2">
-              <div className="pointer-events-none order-2 flex select-none items-end justify-center px-6 pt-10 pb-0 md:order-1 md:px-8">
+      {/* Hero — inverted dark */}
+      <section className="bg-[linear-gradient(160deg,#1a1a2e_0%,#111120_100%)]">
+        <div className="mx-auto max-w-7xl px-4 pt-16 pb-14 text-center md:px-8 md:pt-22 md:pb-18">
+          <Badge variant="new" className="mb-6 border-white/15 bg-white/8 text-white/80">
+            הסיפור המשפחתי שלך, כספר אישי בעברית
+          </Badge>
+          <h1 className="text-5xl font-black leading-[1.05] text-white md:text-7xl">
+            הסיפור המשפחתי שלך,
+            <br />
+            כספר אישי.
+          </h1>
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 md:text-lg">
+            אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
+            כמו יום הולדת, אח חדש, היריון, התגברות, או כל רגע משפחתי שראוי להפוך לזיכרון.
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {HERO_FEATURES.map((f) => (
+              <span key={f} className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75">
+                {f}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link href="/create">
+              <Button size="lg" className="sm:w-auto">
+                צרו ספר ילדים
+              </Button>
+            </Link>
+            <Link href="/#how-it-works">
+              <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
+                ראו איך זה עובד
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* מוצר ראשי */}
+      <section id="products" className="border-b border-coral-100/80 bg-[linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
+        <div className="mx-auto max-w-7xl px-4 pt-0 pb-0 md:px-8">
+          <article className="relative overflow-hidden rounded-t-[2rem] border border-b-0 border-coral-100 bg-[#FFF4E6] shadow-[0_-8px_40px_rgba(232,124,83,0.10)]">
+            <div className="grid items-center md:grid-cols-2 md:[direction:ltr]">
+              <div className="pointer-events-none order-2 flex select-none items-end justify-center px-6 pb-0 md:order-1">
                 <Image
                   src={BOOK_PRODUCT.image}
                   alt={BOOK_PRODUCT.imageAlt}
@@ -134,62 +170,25 @@ export default function HomePageContent() {
                 />
               </div>
 
-              <div className="order-1 flex flex-col p-8 text-center md:order-2 md:p-12 md:text-right">
-                <Badge variant="new" className="mb-6 self-center border-white/15 bg-white/8 text-white/80 md:self-start">
-                  הסיפור המשפחתי שלך, כספר אישי בעברית
-                </Badge>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-coral-300">
+              <div className="order-1 flex flex-col p-8 md:order-2 md:p-12 md:[direction:rtl]">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-coral-500">
                   {BOOK_PRODUCT.eyebrow}
                 </p>
-                <h1 className="mt-3 text-4xl font-black leading-[1.05] text-white md:text-6xl">
-                  {BOOK_PRODUCT.title}
-                </h1>
-                <p className="mt-5 text-base leading-8 text-white/74 md:text-lg">
-                  אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
-                  כמו יום הולדת, אח חדש, היריון, התגברות, או כל רגע משפחתי שראוי להפוך לזיכרון.
-                </p>
-
-                <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
-                  {HERO_FEATURES.map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/80"
-                    >
+                <h2 className="mt-3 text-4xl font-black text-[#1a1a2e]">{BOOK_PRODUCT.title}</h2>
+                <p className="mt-4 text-lg leading-8 text-gray-700">{BOOK_PRODUCT.description}</p>
+                <ul className="mt-6 space-y-3">
+                  {BOOK_PRODUCT.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-coral-500" />
                       {f}
-                    </span>
+                    </li>
                   ))}
-                </div>
-
-                <div className="mt-8 rounded-[1.75rem] border border-coral-100/70 bg-[#FFF7ED] p-6 text-right shadow-sm">
-                  <h2 className="text-3xl font-black text-[#1a1a2e]">{BOOK_PRODUCT.title}</h2>
-                  <p className="mt-4 text-base leading-8 text-gray-700">{BOOK_PRODUCT.description}</p>
-                  <ul className="mt-6 space-y-3">
-                    {BOOK_PRODUCT.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-coral-500" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <p className="text-3xl font-black text-coral-700">{BOOK_PRODUCT.price}</p>
-                    <div className="flex flex-col items-center gap-3 sm:flex-row">
-                      <Link href={BOOK_PRODUCT.href}>
-                        <Button size="lg" className="sm:w-auto">
-                          {BOOK_PRODUCT.cta}
-                        </Button>
-                      </Link>
-                      <Link href="/#how-it-works">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="border-coral-300 bg-white/80 text-coral-700 hover:bg-coral-50 sm:w-auto"
-                        >
-                          ראו איך זה עובד
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
+                </ul>
+                <div className="mt-8 flex items-center gap-5">
+                  <p className="text-3xl font-black text-coral-700">{BOOK_PRODUCT.price}</p>
+                  <Link href={BOOK_PRODUCT.href}>
+                    <Button size="lg">{BOOK_PRODUCT.cta}</Button>
+                  </Link>
                 </div>
               </div>
             </div>
