@@ -27,9 +27,6 @@ export default function ContactPage() {
       <section className="border-b border-coral-100/80 bg-[linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-8 md:py-20 lg:grid-cols-[0.95fr_1.05fr]">
           <div>
-            <span className="inline-flex rounded-full border border-coral-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-coral-600">
-              צור קשר
-            </span>
             <h1 className="mt-5 text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
               נשמח לעזור לכם
             </h1>

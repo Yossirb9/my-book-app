@@ -2,7 +2,6 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 
 const HERO_FEATURES = [
@@ -118,81 +117,52 @@ export default function HomePageContent() {
 
       {/* Hero — inverted dark */}
       <section className="bg-[linear-gradient(160deg,#1a1a2e_0%,#111120_100%)]">
-        <div className="mx-auto max-w-7xl px-4 pt-16 pb-14 text-center md:px-8 md:pt-22 md:pb-18">
-          <Badge variant="new" className="mb-6 border-white/15 bg-white/8 text-white/80">
-            הסיפור המשפחתי שלך, כספר אישי בעברית
-          </Badge>
-          <h1 className="text-5xl font-black leading-[1.05] text-white md:text-7xl">
-            הסיפור המשפחתי שלך,
-            <br />
-            כספר אישי.
-          </h1>
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 md:text-lg">
-            אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
-            כמו יום הולדת, אח חדש, היריון, התגברות, או כל רגע משפחתי שראוי להפוך לזיכרון.
-          </p>
+        <div className="mx-auto max-w-7xl px-4 pt-16 pb-14 md:px-8 md:pt-22 md:pb-18">
+          <div className="grid items-center gap-8 md:grid-cols-2 md:[direction:ltr]">
+            <div className="text-center md:[direction:rtl] md:text-right">
+              <h1 className="text-5xl font-black leading-[1.05] text-white md:text-7xl">
+                הסיפור המשפחתי שלך,
+                <br />
+                כספר אישי.
+              </h1>
+              <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 md:mx-0 md:text-lg">
+                אנחנו תומכים בעד 5 דמויות ויוצרים ספרים מותאמים אישית לרגעים משמעותיים בחיים,
+                כמו יום הולדת, אח חדש, היריון, התגברות, או כל רגע משפחתי שראוי להפוך לזיכרון.
+              </p>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            {HERO_FEATURES.map((f) => (
-              <span key={f} className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75">
-                {f}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link href="/create">
-              <Button size="lg" className="sm:w-auto">
-                צרו ספר ילדים
-              </Button>
-            </Link>
-            <Link href="/#how-it-works">
-              <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
-                ראו איך זה עובד
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* מוצר ראשי */}
-      <section id="products" className="border-b border-coral-100/80 bg-[linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
-        <div className="mx-auto max-w-7xl px-4 pt-0 pb-0 md:px-8">
-          <article className="relative overflow-hidden rounded-t-[2rem] border border-b-0 border-coral-100 bg-[#FFF4E6] shadow-[0_-8px_40px_rgba(232,124,83,0.10)]">
-            <div className="grid items-center md:grid-cols-2 md:[direction:ltr]">
-              <div className="pointer-events-none order-2 flex select-none items-end justify-center px-6 pb-0 md:order-1">
-                <Image
-                  src={BOOK_PRODUCT.image}
-                  alt={BOOK_PRODUCT.imageAlt}
-                  width={600}
-                  height={400}
-                  className="h-auto w-full max-w-[30rem]"
-                />
+              <div className="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
+                {HERO_FEATURES.map((f) => (
+                  <span key={f} className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm font-medium text-white/75">
+                    {f}
+                  </span>
+                ))}
               </div>
 
-              <div className="order-1 flex flex-col p-8 md:order-2 md:p-12 md:[direction:rtl]">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-coral-500">
-                  {BOOK_PRODUCT.eyebrow}
-                </p>
-                <h2 className="mt-3 text-4xl font-black text-[#1a1a2e]">{BOOK_PRODUCT.title}</h2>
-                <p className="mt-4 text-lg leading-8 text-gray-700">{BOOK_PRODUCT.description}</p>
-                <ul className="mt-6 space-y-3">
-                  {BOOK_PRODUCT.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-coral-500" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-8 flex items-center gap-5">
-                  <p className="text-3xl font-black text-coral-700">{BOOK_PRODUCT.price}</p>
-                  <Link href={BOOK_PRODUCT.href}>
-                    <Button size="lg">{BOOK_PRODUCT.cta}</Button>
-                  </Link>
-                </div>
+              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center md:justify-start">
+                <p className="text-3xl font-black text-coral-300">{BOOK_PRODUCT.price}</p>
+                <Link href="/create">
+                  <Button size="lg" className="sm:w-auto">
+                    צרו ספר ילדים
+                  </Button>
+                </Link>
+                <Link href="/#how-it-works">
+                  <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
+                    ראו איך זה עובד
+                  </Button>
+                </Link>
               </div>
             </div>
-          </article>
+
+            <div className="pointer-events-none flex select-none items-end justify-center">
+              <Image
+                src={BOOK_PRODUCT.image}
+                alt={BOOK_PRODUCT.imageAlt}
+                width={700}
+                height={520}
+                className="h-auto w-full max-w-[33rem]"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -264,11 +234,7 @@ export default function HomePageContent() {
                 </span>
               </div>
               <h3 className="mt-3 text-3xl font-black text-white">{JOURNAL_PRODUCT.title}</h3>
-              <p className="mt-2 text-sm leading-7 text-white/60">
-                לא מתחרה על איורים, טקסט או מספר עמודים.
-                <br />
-                מתחרה על: חוויה משפחתית · ערך רגשי · תיעוד חיים · העצמה
-              </p>
+              <p className="mt-2 text-sm leading-7 text-white/60">חוויה משפחתית · ערך רגשי · תיעוד חיים · העצמה</p>
 
               <div className="mt-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-400">מה בפנים — 5 חלקים</p>
@@ -308,13 +274,13 @@ export default function HomePageContent() {
                 </Link>
               </div>
             </div>
-            <div className="pointer-events-none select-none px-6 pb-2 md:flex md:items-end">
+            <div className="pointer-events-none flex select-none items-center justify-center px-4 py-6 md:px-8 md:py-8">
               <Image
                 src={JOURNAL_PRODUCT.image}
                 alt={JOURNAL_PRODUCT.imageAlt}
                 width={600}
                 height={400}
-                className="h-auto w-full"
+                className="h-auto w-full max-w-[28rem] md:max-w-[38rem]"
               />
             </div>
           </article>
@@ -326,8 +292,7 @@ export default function HomePageContent() {
         <div className="mx-auto max-w-5xl px-4 py-14 text-center md:px-8 md:py-20">
           <h2 className="text-3xl font-black text-white md:text-5xl">תנו לילד שלכם להיות הגיבור.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/70 md:text-base">
-            כל ספר נוצר מאפס, בשביל ילד אחד. מתחילים בלי להתחבר, ממלאים בזמן שלכם, ומקבלים תוצאה שאפשר לתת
-            כמתנה עוד היום.
+            כל ספר נוצר מאפס. מתחילים בלי להתחבר, ממלאים בזמן שלכם, ומקבלים תוצאה שאפשר לתת כמתנה עוד היום.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/create">

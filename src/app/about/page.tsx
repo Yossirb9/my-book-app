@@ -32,9 +32,6 @@ export default function AboutPage() {
       <section className="border-b border-coral-100/80 bg-[radial-gradient(circle_at_top_left,rgba(232,124,83,0.16),transparent_38%),radial-gradient(circle_at_top_right,rgba(255,179,71,0.2),transparent_28%),linear-gradient(180deg,#FFF9F0_0%,#FFF3E2_100%)]">
         <div className="mx-auto max-w-5xl px-4 py-14 md:px-8 md:py-20">
           <div className="mx-auto max-w-4xl text-center">
-            <span className="inline-flex rounded-full border border-coral-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-coral-600">
-              אנחנו
-            </span>
             <h1 className="mt-5 text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
               ספרים שנולדו מתוך סיפור משפחתי אמיתי.
             </h1>
@@ -61,8 +58,8 @@ export default function AboutPage() {
                 שנשאר איתם.
               </p>
               <p>
-                מתוך זה נולד הרצון שלנו ליצור ספרים שמלווים רגעים משפחתיים ואישיים משמעותיים, ובו בזמן גם
-                מחזקים ומעודדים קריאה אצל ילדים צעירים. כשילד פוגש את עצמו בתוך הסיפור, הקריאה הופכת
+                מתוך ההבנה הזאת נולד המיזם שלנו: ליצור ספרים שמלווים רגעים משפחתיים ואישיים משמעותיים,
+                ובו בזמן גם מחזקים ומעודדים קריאה אצל ילדים צעירים. כשילד פוגש את עצמו בתוך הסיפור, הקריאה הופכת
                 לחוויה קרובה, טבעית ומרגשת יותר.
               </p>
             </div>

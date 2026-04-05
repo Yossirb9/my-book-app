@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/ui/Button'
 import LogoutButton from '@/components/ui/LogoutButton'
 import { createClient } from '@/lib/supabase/client'
@@ -22,10 +22,6 @@ const MARKETING_LINKS = [
 export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) {
   const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
-  const shouldHide = useMemo(
-    () => ['/create', '/book', '/books'].some((route) => pathname?.startsWith(route)),
-    [pathname]
-  )
 
   useEffect(() => {
     const supabase = createClient()
@@ -42,10 +38,6 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
     return () => subscription.unsubscribe()
   }, [])
-
-  if (shouldHide) {
-    return null
-  }
 
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/88 backdrop-blur-xl shadow-[0_10px_35px_rgba(26,26,46,0.06)]">

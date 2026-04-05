@@ -48,9 +48,6 @@ export default function TermsPage() {
     <main className="min-h-dvh bg-[#FFF9F0] text-gray-900">
       <section className="border-b border-coral-100/80 bg-[linear-gradient(180deg,#FFF9F0_0%,#FFF4E6_100%)]">
         <div className="mx-auto max-w-5xl px-4 py-14 md:px-8 md:py-20">
-          <span className="inline-flex rounded-full border border-coral-200 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-coral-600">
-            תנאי שימוש
-          </span>
           <h1 className="mt-5 text-4xl font-black leading-[1.05] text-[#1a1a2e] md:text-6xl">
             תנאי השימוש באתר
           </h1>
