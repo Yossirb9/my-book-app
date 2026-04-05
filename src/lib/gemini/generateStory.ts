@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { BookParams, BookLength } from '@/types'
+import { getCharacterDisplayRole, getStoryFocusInstruction } from '@/lib/characters'
 import { TEMPLATE_CONTEXT, TEMPLATE_DIRECTION } from '@/lib/bookTemplates'
+import { BookLength, BookParams } from '@/types'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -14,7 +15,7 @@ const AGE_INSTRUCTIONS = {
   '0-2': 'כתוב משפטים קצרים מאוד (עד 8 מילים). שפה פשוטה ביותר. חזרות מרגיעות. ניקוד מלא.',
   '3-5': 'משפטים קצרים (עד 12 מילים). שפה פשוטה וצבעונית. הרבה דיאלוג. ניקוד אם נדרש.',
   '6-8': 'משפטים בינוניים (עד 18 מילים). שפה עשירה יותר. עלילה ברורה עם שיא.',
-  '9+': 'משפטים ארוכים יותר. מלים מתוחכמות. עלילה מורכבת עם מסר עמוק.',
+  '9+': 'משפטים ארוכים יותר. מילים מתוחכמות. עלילה מורכבת עם מסר עמוק.',
 }
 
 const DIRECTION_INSTRUCTIONS = {
@@ -24,27 +25,24 @@ const DIRECTION_INSTRUCTIONS = {
   adventurous: 'כתוב בטון הרפתקני ודמיוני, עם עולמות קסומים ומסע מרגש.',
 }
 
-// TEMPLATE_CONTEXT מיובא מ-src/lib/bookTemplates.ts — ערוך שם
-
 export interface StoryPage {
   pageNumber: number
   text: string
   sceneDescription: string
-  charactersInScene: string[] // names of characters appearing in this page
+  charactersInScene: string[]
 }
 
 export async function generateStory(params: BookParams): Promise<StoryPage[]> {
   const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
 
   const pageCount = PAGE_COUNT[params.length]
-  const characterNames = params.characters.map((c) => c.name).join(', ')
-  const mainChar = params.characters.find((c) => c.role === 'main')
+  const characterNames = params.characters.map((character) => `${character.name} (${getCharacterDisplayRole(character)})`).join(', ')
 
   const prompt = `אתה סופר ספרי ילדים מוכשר בעברית.
 
 כתוב ספר ילדים מאויר עם ${pageCount} עמודים.
 
-**פרטי הסיפור:**
+פרטי הסיפור:
 - נושא: ${TEMPLATE_CONTEXT[params.template]}
 - דמויות: ${characterNames}
 - מסר: ${params.desiredMessage || 'לא צוין'}
@@ -53,32 +51,31 @@ export async function generateStory(params: BookParams): Promise<StoryPage[]> {
 - גיל יעד: ${AGE_INSTRUCTIONS[params.ageGroup]}
 - ניקוד: ${params.includeNikud ? 'כתוב עם ניקוד מלא' : 'ללא ניקוד'}
 
-**חובה להחזיר JSON בלבד (ללא טקסט נוסף, ללא קוד בלוק markdown) בפורמט:**
+חובה להחזיר JSON בלבד בפורמט:
 {
   "pages": [
     {
       "pageNumber": 1,
       "text": "הטקסט לדף",
-      "sceneDescription": "תיאור הסצנה לאיור: מה קורה, היכן, מה עושות הדמויות, אווירה, צבעים מומלצים",
+      "sceneDescription": "תיאור הסצנה לאיור",
       "charactersInScene": ["שם דמות 1", "שם דמות 2"]
     }
   ]
 }
 
-**לגבי charactersInScene:** רשימת שמות הדמויות שמופיעות פיזית בסצנה הזו (רק מהרשימה: ${params.characters.map((c) => c.name).join(', ')})
+לגבי charactersInScene: רשימת שמות הדמויות שמופיעות פיזית בסצנה הזו, רק מתוך הרשימה הזאת: ${params.characters.map((character) => character.name).join(', ')}
 
-**הנחיות:**
-- הטקסט לכל דף: קצר ומדויק לפי גיל היעד
-- תיאור הסצנה: מפורט מאוד (3-4 משפטים), כדי שאפשר לצייר אותו
-- הדמות הראשית: ${mainChar?.name || characterNames.split(',')[0]}
-- הסיפור צריך לזרום בצורה טבעית מתחילה לסוף
-- הכנס ${params.characters.map((c) => c.name).join(' ו')} לתוך הסיפור
-- החזר JSON בלבד — ללא שום טקסט לפני או אחרי`
+הנחיות:
+- הטקסט לכל דף צריך להיות קצר ומדויק לגיל היעד
+- תיאור הסצנה צריך להיות מפורט מאוד (3-4 משפטים)
+- ${getStoryFocusInstruction(params)}
+- הסיפור צריך לזרום בצורה טבעית מתחילתו ועד סופו
+- הכנס את ${params.characters.map((character) => character.name).join(' ו')} לתוך הסיפור
+- החזר JSON בלבד`
 
   const result = await model.generateContent(prompt)
   const responseText = result.response.text().trim()
 
-  // Strip markdown code blocks if present
   const jsonText = responseText
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')

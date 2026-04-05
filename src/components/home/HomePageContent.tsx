@@ -138,18 +138,21 @@ export default function HomePageContent() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center md:justify-start">
-                <p className="text-3xl font-black text-coral-300">{BOOK_PRODUCT.price}</p>
-                <Link href="/create">
-                  <Button size="lg" className="sm:w-auto">
-                    צרו ספר ילדים
-                  </Button>
-                </Link>
+              <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:items-center md:justify-between">
                 <Link href="/#how-it-works">
                   <Button variant="outline" size="lg" className="border-white/30 bg-transparent text-white hover:bg-white/10 sm:w-auto">
                     ראו איך זה עובד
                   </Button>
                 </Link>
+
+                <div className="flex flex-col items-center gap-3 sm:flex-row md:justify-start">
+                  <Link href="/create">
+                    <Button size="lg" className="sm:w-auto">
+                      צרו ספר ילדים
+                    </Button>
+                  </Link>
+                  <p className="text-3xl font-black text-coral-300">{BOOK_PRODUCT.price}</p>
+                </div>
               </div>
             </div>
 

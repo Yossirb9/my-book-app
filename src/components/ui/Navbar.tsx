@@ -19,6 +19,8 @@ const MARKETING_LINKS = [
   { href: '/#faq', label: 'שאלות נפוצות' },
 ]
 
+const APP_LINKS = [{ href: '/books', label: 'הספרים שלי' }]
+
 export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) {
   const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated)
@@ -65,27 +67,25 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
               {link.label}
             </Link>
           ))}
-          {isAuthenticated && (
-            <Link
-              href="/books"
-              className={cn(
-                'transition-colors hover:text-coral-600',
-                pathname === '/books' && 'text-coral-600'
-              )}
-            >
-              הספרים שלי
-            </Link>
-          )}
+          {isAuthenticated
+            ? APP_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'transition-colors hover:text-coral-600',
+                    pathname === link.href && 'text-coral-600'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))
+            : null}
         </div>
 
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <>
-              <Link href="/books">
-                <Button variant="ghost" size="sm" className="rounded-full px-4">
-                  הספרים שלי
-                </Button>
-              </Link>
               <LogoutButton className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
                 התנתקות
               </LogoutButton>
@@ -127,12 +127,6 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Link
-                  href="/books"
-                  className="rounded-full border border-coral-200 px-3 py-2 text-xs font-semibold text-coral-700"
-                >
-                  הספרים שלי
-                </Link>
                 <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
                   התנתק
                 </LogoutButton>
@@ -169,6 +163,20 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
               {link.label}
             </Link>
           ))}
+          {isAuthenticated
+            ? APP_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'whitespace-nowrap transition-colors hover:text-coral-600',
+                    pathname === link.href && 'text-coral-600'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))
+            : null}
         </div>
       </div>
     </nav>

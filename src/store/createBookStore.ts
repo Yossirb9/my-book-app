@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { normalizeCharacterRoles } from '@/lib/characters'
 import {
   AgeGroup,
   BookFormat,
@@ -73,7 +74,13 @@ export const useCreateBookStore = create<CreateBookState>()(
       setShowAuthGate: (showAuthGate) => set({ showAuthGate }),
 
       setTemplate: (template) =>
-        set((state) => ({ params: { ...state.params, template } })),
+        set((state) => ({
+          params: {
+            ...state.params,
+            template,
+            characters: normalizeCharacterRoles(template, state.params.characters || []),
+          },
+        })),
 
       setDirection: (emotionalDirection) =>
         set((state) => ({ params: { ...state.params, emotionalDirection } })),

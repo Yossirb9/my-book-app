@@ -1,9 +1,4 @@
-export const CREATE_STEP_LABELS = [
-  'סוג ספר',
-  'דמויות',
-  'פרטי הספר',
-  'תצוגה ואישור',
-] as const
+export const CREATE_STEP_LABELS = ['סוג ספר', 'דמויות', 'פרטי הספר', 'תצוגה ואישור'] as const
 
 export const CREATE_STEP_DETAILS = [
   {
@@ -14,7 +9,7 @@ export const CREATE_STEP_DETAILS = [
   {
     eyebrow: 'ליהוק',
     title: 'מכניסים את המשפחה לספר',
-    description: 'דמות ראשית, דמויות נוספות ותמונה אחת ברורה לכל אחת. מכאן ה-AI כבר יודע על מי לספר.',
+    description: 'מוסיפים לכל דמות שם, תפקיד, תמונה ברורה ואפיון קצר אם רוצים. מכאן ה-AI כבר יודע את מי להכניס לסיפור ואיך להתייחס אליהן.',
   },
   {
     eyebrow: 'התאמה אישית',

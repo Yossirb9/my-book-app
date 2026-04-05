@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ReactNode } from 'react'
 import Badge from '@/components/ui/Badge'
 import { StepProgress } from '@/components/ui/StepProgress'
+import { getCharacterNamesSummary, getPrimaryCharacter, isEnsembleTemplate } from '@/lib/characters'
 import { CREATE_STEP_DETAILS } from '@/lib/createFlow'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
@@ -37,7 +38,12 @@ export default function CreateShell({
 }: CreateShellProps) {
   const { params, setStep } = useCreateBookStore()
   const detail = CREATE_STEP_DETAILS[step - 1]
-  const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
+  const isEnsemble = isEnsembleTemplate(params.template)
+  const mainCharacter =
+    params.template && params.characters
+      ? getPrimaryCharacter({ template: params.template, characters: params.characters })?.name
+      : null
+  const charactersSummary = getCharacterNamesSummary(params.characters || [])
 
   const backControl = onBack ? (
     <button type="button" onClick={onBack} className="text-sm font-medium text-white/60 transition-colors hover:text-white">
@@ -71,7 +77,10 @@ export default function CreateShell({
 
             <div className="mt-8 space-y-3">
               <SummaryRow label="נושא" value={params.template ? TEMPLATE_LABELS[params.template] : 'עדיין לא נבחר'} />
-              <SummaryRow label="דמות ראשית" value={mainCharacter || 'נוסיף אותה בשלב הבא'} />
+              <SummaryRow
+                label={isEnsemble ? 'הדמויות בסיפור' : 'דמות ראשית'}
+                value={isEnsemble ? charactersSummary : mainCharacter || 'נוסיף אותה בשלב הבא'}
+              />
             </div>
           </div>
         </aside>

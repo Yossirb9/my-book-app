@@ -1,21 +1,21 @@
 'use client'
 
 import { useMemo, useRef } from 'react'
-import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
 import CreateShell from '@/components/create/CreateShell'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
+import {
+  CHARACTER_ROLE_OPTIONS,
+  getCharacterDisplayRole,
+  isEnsembleTemplate,
+  normalizeCharacterRoles,
+  syncCharacterRoleFields,
+} from '@/lib/characters'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
 import { Character } from '@/types'
 
 const EMPTY_CHARACTERS: Character[] = []
-
-function normalizeRoles(characters: Character[]) {
-  return characters.map((character, index) => ({
-    ...character,
-    role: (index === 0 ? 'main' : 'secondary') as Character['role'],
-  }))
-}
 
 const photoGuidelines = [
   'תמונה אחת טובה לכל דמות מספיקה בשלב הזה.',
@@ -23,26 +23,38 @@ const photoGuidelines = [
   'רקע נקי יעזור לשמור על דמיון חזק יותר באיורים.',
 ]
 
+function isCharacterComplete(character: Character) {
+  return Boolean(
+    character.name.trim() &&
+      character.imageUrl &&
+      character.familyRole &&
+      (character.familyRole !== 'other' || character.customRole?.trim())
+  )
+}
+
 export default function StepCharacters() {
   const { nextStep, params, prevStep, setCharacters } = useCreateBookStore()
   const characters = params.characters ?? EMPTY_CHARACTERS
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const isEnsemble = isEnsembleTemplate(params.template)
 
-  const isValid = characters.length > 0 && characters.every((character) => character.name.trim() && character.imageUrl && character.gender)
+  const isValid = characters.length > 0 && characters.every(isCharacterComplete)
   const completionText = useMemo(() => {
     if (!characters.length) {
-      return 'עדיין לא הוספתם דמויות. התחילו בדמות הראשית של הספר.'
+      return isEnsemble
+        ? 'עדיין לא הוספתם דמויות. התחילו מבני המשפחה שישתתפו בסיפור.'
+        : 'עדיין לא הוספתם דמויות. הדמות הראשונה שתוסיפו תהיה הדמות הראשית של הספר.'
     }
 
-    const complete = characters.filter((character) => character.name.trim() && character.imageUrl && character.gender).length
+    const complete = characters.filter(isCharacterComplete).length
     return `${complete} מתוך ${characters.length} דמויות מוכנות ליצירה`
-  }, [characters])
+  }, [characters, isEnsemble])
 
   const addCharacter = () => {
     if (characters.length >= 5) return
 
     setCharacters(
-      normalizeRoles([
+      normalizeCharacterRoles(params.template, [
         ...characters,
         {
           id: crypto.randomUUID(),
@@ -55,12 +67,17 @@ export default function StepCharacters() {
 
   const updateCharacter = (id: string, updates: Partial<Character>) => {
     setCharacters(
-      normalizeRoles(characters.map((character) => (character.id === id ? { ...character, ...updates } : character)))
+      normalizeCharacterRoles(
+        params.template,
+        characters.map((character) =>
+          character.id === id ? syncCharacterRoleFields({ ...character, ...updates }) : character
+        )
+      )
     )
   }
 
   const removeCharacter = (id: string) => {
-    setCharacters(normalizeRoles(characters.filter((character) => character.id !== id)))
+    setCharacters(normalizeCharacterRoles(params.template, characters.filter((character) => character.id !== id)))
   }
 
   const handleImageUpload = (id: string, file: File) => {
@@ -91,7 +108,12 @@ export default function StepCharacters() {
               <div>
                 <p className="text-lg font-black text-[#161625]">מי מופיע בספר?</p>
                 <p className="mt-1 text-sm leading-7 text-gray-500">
-                  לכל דמות מוסיפים שם, תיאור קצר אופציונלי ותמונה אחת ברורה שתשמש בסיס לאיור.
+                  לכל דמות מוסיפים שם, תפקיד, אפיון קצר אופציונלי ותמונה אחת ברורה שתשמש בסיס לאיור.
+                </p>
+                <p className="mt-1 text-sm leading-7 text-gray-500">
+                  {isEnsemble
+                    ? 'בתבנית הזו כל הדמויות שוות בחשיבותן והסיפור יתחלק ביניהן.'
+                    : 'הדמות הראשונה שתוסיפו תהיה הדמות הראשית, וכל שאר הדמויות ילוו את הסיפור.'}
                 </p>
               </div>
               <Badge variant={isValid ? 'ready' : 'default'}>{completionText}</Badge>
@@ -103,7 +125,9 @@ export default function StepCharacters() {
               const missing: string[] = []
               if (!character.name.trim()) missing.push('שם')
               if (!character.imageUrl) missing.push('תמונה')
-              if (!character.gender) missing.push('בן/בת')
+              if (!character.familyRole || (character.familyRole === 'other' && !character.customRole?.trim())) {
+                missing.push('תפקיד')
+              }
 
               return (
                 <article
@@ -149,33 +173,6 @@ export default function StepCharacters() {
                       >
                         {character.imageUrl ? 'החלפת תמונה' : 'בחירת תמונה'}
                       </button>
-
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateCharacter(character.id, { gender: 'boy' })}
-                          className={cn(
-                            'flex-1 rounded-2xl border-2 py-2 text-sm font-bold transition-all',
-                            character.gender === 'boy'
-                              ? 'border-coral-300 bg-coral-50 text-coral-700'
-                              : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
-                          )}
-                        >
-                          בן
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => updateCharacter(character.id, { gender: 'girl' })}
-                          className={cn(
-                            'flex-1 rounded-2xl border-2 py-2 text-sm font-bold transition-all',
-                            character.gender === 'girl'
-                              ? 'border-coral-300 bg-coral-50 text-coral-700'
-                              : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'
-                          )}
-                        >
-                          בת
-                        </button>
-                      </div>
                     </div>
 
                     <div className="min-w-0">
@@ -185,20 +182,28 @@ export default function StepCharacters() {
                             {missing.length ? `חסר: ${missing.join(', ')}` : 'מוכן ליצירה'}
                           </Badge>
                           <span className="rounded-full bg-[#FFF3E7] px-3 py-1 text-xs font-semibold text-coral-700">
-                            {character.role === 'main' ? 'דמות ראשית' : 'דמות נוספת'}
+                            {isEnsemble
+                              ? getCharacterDisplayRole(character)
+                              : character.role === 'main'
+                                ? 'דמות ראשית'
+                                : getCharacterDisplayRole(character)}
                           </span>
                         </div>
-                        <button type="button" onClick={() => removeCharacter(character.id)} className="text-sm text-gray-400 transition-colors hover:text-red-500">
+                        <button
+                          type="button"
+                          onClick={() => removeCharacter(character.id)}
+                          className="text-sm text-gray-400 transition-colors hover:text-red-500"
+                        >
                           הסרה
                         </button>
                       </div>
 
-                      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                      <div className="grid gap-4 lg:grid-cols-2">
                         <label className="flex flex-col gap-1.5">
                           <span className="text-sm font-semibold text-gray-700">שם הדמות</span>
                           <input
                             type="text"
-                            placeholder="למשל: נועה, אבא, סבתא רחל"
+                            placeholder="למשל: מאיה, אבא, סבתא רחל"
                             value={character.name}
                             onChange={(event) => updateCharacter(character.id, { name: event.target.value })}
                             className="w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-coral-500 focus:ring-2 focus:ring-coral-100"
@@ -206,16 +211,51 @@ export default function StepCharacters() {
                         </label>
 
                         <label className="flex flex-col gap-1.5">
-                          <span className="text-sm font-semibold text-gray-700">תיאור קצר אופציונלי</span>
+                          <span className="text-sm font-semibold text-gray-700">תפקיד</span>
+                          <select
+                            value={character.familyRole || ''}
+                            onChange={(event) =>
+                              updateCharacter(character.id, { familyRole: event.target.value as Character['familyRole'] })
+                            }
+                            className="w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-800 outline-none transition-all focus:border-coral-500 focus:ring-2 focus:ring-coral-100"
+                          >
+                            <option value="">בחרו תפקיד</option>
+                            {CHARACTER_ROLE_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+
+                      {character.familyRole === 'other' ? (
+                        <label className="mt-4 flex flex-col gap-1.5">
+                          <span className="text-sm font-semibold text-gray-700">מה התפקיד?</span>
                           <input
                             type="text"
-                            placeholder="גיל, קשר משפחתי, תחביב או פרט מזהה"
-                            value={character.description || ''}
-                            onChange={(event) => updateCharacter(character.id, { description: event.target.value })}
+                            placeholder="למשל: סבא, סבתא, דודה, בן דוד"
+                            value={character.customRole || ''}
+                            onChange={(event) => updateCharacter(character.id, { customRole: event.target.value })}
                             className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-coral-400"
                           />
                         </label>
-                      </div>
+                      ) : null}
+
+                      <p className="mt-3 text-xs leading-6 text-gray-500">
+                        ילד וילדה נחשבים כאחים ואחיות בתוך המשפחה. חבר וחברה מתאימים לדמויות מחוץ למשפחה.
+                      </p>
+
+                      <label className="mt-4 flex flex-col gap-1.5">
+                        <span className="text-sm font-semibold text-gray-700">אפיון קצר אופציונלי</span>
+                        <input
+                          type="text"
+                          placeholder="למשל: אוהבת לרקוד, מצחיק, ביישן, סקרנית"
+                          value={character.description || ''}
+                          onChange={(event) => updateCharacter(character.id, { description: event.target.value })}
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 outline-none transition-all placeholder:text-gray-400 focus:border-coral-400"
+                        />
+                      </label>
                     </div>
                   </div>
                 </article>
@@ -253,7 +293,8 @@ export default function StepCharacters() {
           <section className="rounded-[2rem] border border-black/5 bg-white p-6 shadow-sm">
             <h3 className="text-xl font-black text-[#161625]">מה יופיע כאן בסוף?</h3>
             <p className="mt-2 text-sm leading-7 text-gray-500">
-              אנחנו שומרים כרגע תמונה אחת לכל דמות כדי לשמור על תהליך פשוט, מהיר וברור. בהמשך, בשלב האישור, תראו סיכום מלא של כל הליהוק שבחרתם.
+              אנחנו שומרים כרגע תמונה אחת לכל דמות כדי לשמור על תהליך פשוט, מהיר וברור. בהמשך, בשלב האישור,
+              תראו סיכום מלא של כל הליהוק שבחרתם.
             </p>
             <div className="mt-5 grid gap-3">
               <div className="rounded-[1.4rem] bg-[#FFF9F0] p-4">
@@ -262,7 +303,7 @@ export default function StepCharacters() {
               </div>
               <div className="rounded-[1.4rem] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">לכל דמות</p>
-                <p className="mt-1 text-lg font-black text-[#161625]">שם + תמונה + תיאור קצר</p>
+                <p className="mt-1 text-lg font-black text-[#161625]">שם + תפקיד + תמונה + אפיון אופציונלי</p>
               </div>
             </div>
           </section>

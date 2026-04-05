@@ -46,11 +46,24 @@ export type BookStatus = 'draft' | 'generating' | 'ready' | 'failed'
 
 export type RegenerationType = 'image' | 'text'
 
+export type CharacterGender = 'male' | 'female'
+
+export type CharacterRoleOption =
+  | 'father'
+  | 'mother'
+  | 'boy'
+  | 'girl'
+  | 'male_friend'
+  | 'female_friend'
+  | 'other'
+
 export interface Character {
   id: string
   name: string
   role: 'main' | 'secondary'
-  gender?: 'boy' | 'girl'
+  gender?: CharacterGender
+  familyRole?: CharacterRoleOption
+  customRole?: string
   imageUrl?: string
   description?: string
   characterPrompt?: string

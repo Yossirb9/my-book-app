@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getBookTitlePreview } from '@/lib/characters'
 import { createOrderForBook, recordActivity } from '@/lib/crm/service'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Json } from '@/lib/supabase/database.types'
@@ -122,17 +123,5 @@ export async function POST(req: NextRequest) {
 }
 
 function buildTitle(params: BookParams) {
-  const mainCharacter = params.characters.find((character) => character.role === 'main')
-  const templates: Record<string, string> = {
-    new_sibling: 'הספר של',
-    birthday_child: 'יום הולדת שמח ל',
-    potty_training: 'הגיבור של הגמילה',
-    family_love: 'המשפחה של',
-    emotional_journal: 'היומן של',
-  }
-  const base = templates[params.template] || 'הספר של'
-  if (params.template === 'emotional_journal') {
-    return mainCharacter ? `היומן של ${mainCharacter.name}` : 'היומן שלי'
-  }
-  return mainCharacter ? `${base} ${mainCharacter.name}` : 'הספר שלי'
+  return getBookTitlePreview(params)
 }

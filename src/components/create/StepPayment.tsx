@@ -4,22 +4,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import CreateShell from '@/components/create/CreateShell'
+import { getBookTitlePreview, getCharacterDisplayRole, getPrimaryCharacter, isEnsembleTemplate } from '@/lib/characters'
 import { cn } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { useCreateBookStore } from '@/store/createBookStore'
-import {
-  BOOK_PRICES,
-  BookFormat,
-  JOURNAL_PRICE,
-  OrderDraftInput,
-  TEMPLATE_LABELS,
-} from '@/types'
+import { BOOK_PRICES, BookFormat, JOURNAL_PRICE, OrderDraftInput, TEMPLATE_LABELS } from '@/types'
 
 const formats: { id: BookFormat; label: string; hint: string }[] = [
-  { id: 'square',   label: 'מרובע',   hint: 'נוח למסך ולמתנה אישית.' },
-  { id: 'portrait', label: 'לאורך',   hint: 'מרגיש כמו ספר ילדים קלאסי.' },
+  { id: 'square', label: 'מרובע', hint: 'נוח למסך ולמתנה אישית.' },
+  { id: 'portrait', label: 'לאורך', hint: 'מרגיש כמו ספר ילדים קלאסי.' },
 ]
 
 const nextSteps = [
@@ -70,15 +65,17 @@ export default function StepPayment() {
   const [error, setError] = useState('')
 
   const isJournal = params.template === 'emotional_journal'
-  const price = isJournal
-    ? JOURNAL_PRICE
-    : params.length
-      ? BOOK_PRICES[params.length]
-      : BOOK_PRICES.short
-  const totalPagesLabel = isJournal
-    ? '30 עמודים · 5 פרקים'
-    : '12 עמודי תוכן ו-12 תמונות אישיות'
-  const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
+  const isEnsemble = isEnsembleTemplate(params.template)
+  const price = isJournal ? JOURNAL_PRICE : params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short
+  const totalPagesLabel = isJournal ? '30 עמודים · 5 פרקים' : '12 עמודי תוכן ו-12 תמונות אישיות'
+  const mainCharacter =
+    params.template && params.characters
+      ? getPrimaryCharacter({ template: params.template, characters: params.characters })?.name
+      : null
+  const previewTitle =
+    params.template && params.characters
+      ? getBookTitlePreview({ template: params.template, characters: params.characters })
+      : 'הספר שלכם'
   const estimatedTime = useMemo(() => {
     if (isJournal) return 'כ-6 דקות'
     if (params.length === 'long') return 'כ-5 דקות'
@@ -175,7 +172,7 @@ export default function StepPayment() {
     <CreateShell
       step={4}
       onBack={prevStep}
-      badge="מסך החלטה"
+      badge="מסך ההחלטה"
       footer={
         <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[20rem]">
           <Button size="lg" onClick={handleConfirm} loading={loading} className="w-full lg:min-w-[20rem]">
@@ -187,8 +184,6 @@ export default function StepPayment() {
     >
       <div className="grid gap-6 2xl:grid-cols-[1.08fr_0.92fr]">
         <section className="space-y-5">
-
-          {/* פורמט הספר */}
           <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
             <h2 className="text-2xl font-black text-[#161625]">פורמט הספר</h2>
             <p className="mt-1 text-sm text-gray-500">כך הספר ירגיש במסך ובקובץ הסופי.</p>
@@ -216,19 +211,13 @@ export default function StepPayment() {
             <div className="grid gap-0 xl:grid-cols-[1.05fr_0.95fr]">
               <div className="bg-[linear-gradient(180deg,#171925_0%,#10111a_100%)] p-6 text-white lg:p-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-300">Preview</p>
-                <h2 className="mt-4 text-3xl font-black leading-tight">
-                  {isJournal
-                    ? mainCharacter
-                      ? `היומן של ${mainCharacter}`
-                      : 'היומן שלכם'
-                    : mainCharacter
-                      ? `הספר של ${mainCharacter}`
-                      : 'הספר שלכם'}
-                </h2>
+                <h2 className="mt-4 text-3xl font-black leading-tight">{previewTitle}</h2>
                 <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">
                   {isJournal
                     ? 'יומן העצמה משפחתי עם 5 פרקים, 30 עמודים ושאלות לשיח.'
-                    : 'ספר מותאם אישית בעברית עם דמויות אמיתיות, עלילה מקורית ו-PDF מוכן לקריאה.'}
+                    : isEnsemble
+                      ? 'ספר משפחתי שבו כל הדמויות שוות בחשיבותן ומופיעות כחלק מאותו סיפור משותף.'
+                      : 'ספר מותאם אישית בעברית עם דמויות אמיתיות, עלילה מקורית ו-PDF מוכן לקריאה.'}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[1.5rem] bg-white/8 p-4">
@@ -255,6 +244,7 @@ export default function StepPayment() {
                     {params.characters?.map((character) => (
                       <span key={character.id} className="rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-coral-700">
                         {character.name || 'דמות חדשה'}
+                        {character.familyRole ? ` · ${getCharacterDisplayRole(character)}` : ''}
                       </span>
                     ))}
                   </div>
@@ -279,13 +269,13 @@ export default function StepPayment() {
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">דמויות</p>
                 <p className="mt-2 text-lg font-black text-[#161625]">{params.characters?.length || 0} דמויות</p>
-                <p className="mt-1 text-sm text-gray-500">{mainCharacter || 'ללא שם ראשי'} · תמונה אחת לכל דמות</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {isEnsemble ? 'כולן שוות בחשיבותן בסיפור · תמונה אחת לכל דמות' : `${mainCharacter || 'ללא שם ראשי'} · תמונה אחת לכל דמות`}
+                </p>
               </div>
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">מסר</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">
-                  {params.desiredMessage || 'לא הוגדר מסר'}
-                </p>
+                <p className="mt-2 text-lg font-black text-[#161625]">{params.desiredMessage || 'לא הוגדר מסר'}</p>
                 <p className="mt-1 text-sm text-gray-500">{params.includeNikud ? 'עם ניקוד' : 'ללא ניקוד'}</p>
               </div>
             </div>
@@ -376,7 +366,7 @@ export default function StepPayment() {
               </Badge>
             </div>
             <p className="mt-4 text-sm leading-7 text-gray-600">
-              כרגע האישור פותח הזמנה ידנית חכמה. כשה-checkout של Stripe יושלם, אותו מסלול ידע לעבוד גם עם תשלום אמיתי.
+              כרגע האישור פותח הזמנה ידנית חכמה. כשמסלול ה-checkout של Stripe יושלם, אותו מסלול ידע לעבוד גם עם תשלום אמיתי.
             </p>
           </section>
 

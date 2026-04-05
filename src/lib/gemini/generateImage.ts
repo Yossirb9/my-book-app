@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { Character, BookParams } from '@/types'
+import { getCharacterPromptDescriptor } from '@/lib/characters'
+import { BookParams, Character } from '@/types'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -12,27 +13,31 @@ export async function generatePageImage(
 ): Promise<Buffer> {
   const model = genAI.getGenerativeModel({ model: 'gemini-3.1-flash-image-preview' })
 
-  // Use all refs unless a specific scene filter is provided
-  const refs = (charactersInScene && charactersInScene.length > 0)
-    ? characterImageBase64s.filter((ref) =>
-        charactersInScene.some((n) => n.trim().toLowerCase() === ref.name.trim().toLowerCase())
-      )
-    : characterImageBase64s
+  const refs =
+    charactersInScene && charactersInScene.length > 0
+      ? characterImageBase64s.filter((ref) =>
+          charactersInScene.some((name) => name.trim().toLowerCase() === ref.name.trim().toLowerCase())
+        )
+      : characterImageBase64s
 
-  // Fall back to all refs if filter produced nothing
   const relevantRefs = refs.length > 0 ? refs : characterImageBase64s
 
-  // Only include characters that are in this scene
-  const sceneCharacters = (charactersInScene && charactersInScene.length > 0)
-    ? characters.filter((c) => charactersInScene.some((n) => n.trim().toLowerCase() === c.name.trim().toLowerCase()))
-    : characters
+  const sceneCharacters =
+    charactersInScene && charactersInScene.length > 0
+      ? characters.filter((character) =>
+          charactersInScene.some((name) => name.trim().toLowerCase() === character.name.trim().toLowerCase())
+        )
+      : characters
 
-  const charList = sceneCharacters.map((c) => {
-    const hasRef = relevantRefs.some((r) => r.name.trim().toLowerCase() === c.name.trim().toLowerCase())
-    const genderStr = c.gender === 'boy' ? 'male' : c.gender === 'girl' ? 'female' : ''
-    const desc = [genderStr, c.description].filter(Boolean).join(', ')
-    return `- ${c.name}${desc ? ' (' + desc + ')' : ''}${hasRef ? ' ← REFERENCE PHOTO ATTACHED' : ''}`
-  }).join('\n')
+  const charList = sceneCharacters
+    .map((character) => {
+      const hasRef = relevantRefs.some(
+        (ref) => ref.name.trim().toLowerCase() === character.name.trim().toLowerCase()
+      )
+      const desc = [character.gender, getCharacterPromptDescriptor(character)].filter(Boolean).join(', ')
+      return `- ${character.name}${desc ? ` (${desc})` : ''}${hasRef ? ' -> REFERENCE PHOTO ATTACHED' : ''}`
+    })
+    .join('\n')
 
   const format = params.format === 'square' ? 'square 1:1 ratio' : 'portrait A4 ratio'
 
@@ -41,23 +46,27 @@ export async function generatePageImage(
 SCENE TO ILLUSTRATE:
 ${sceneDescription}
 
-CHARACTERS IN THIS SCENE (ONLY these characters should appear — do NOT add any other people):
+CHARACTERS IN THIS SCENE (ONLY these characters should appear - do NOT add any other people):
 ${charList}
 
 CRITICAL: Only the characters listed above should appear in the image. Do not add strangers, extra children, or background people.
 
-${relevantRefs.length > 0 ? `REFERENCE PHOTOS: I am attaching ${relevantRefs.length} real reference photo(s) of the characters.
+${
+  relevantRefs.length > 0
+    ? `REFERENCE PHOTOS: I am attaching ${relevantRefs.length} real reference photo(s) of the characters.
 YOU MUST:
 - Make each character's face look IDENTICAL to their reference photo
 - Match EXACT age, facial features, skin tone, eye color, hair color, and hair style
 - Do NOT make characters younger or older than they appear in the reference photo
-- The people in this book are REAL — parents will show this to their children
-- Character likeness and correct age is the #1 priority of this illustration` : ''}
+- The people in this book are REAL - parents will show this to their children
+- Character likeness and correct age is the #1 priority of this illustration`
+    : ''
+}
 
-STYLE REQUIREMENTS (ABSOLUTELY MANDATORY — NO EXCEPTIONS):
-- PHOTOREALISTIC style ONLY — like a high-end professional photograph
+STYLE REQUIREMENTS (ABSOLUTELY MANDATORY - NO EXCEPTIONS):
+- PHOTOREALISTIC style ONLY - like a high-end professional photograph
 - STRICTLY FORBIDDEN: cartoon, illustration, animation, watercolor, painting, sketch, comic, drawing, 3D render, CGI
-- If you feel tempted to add any illustrated or stylized elements — DON'T. Stay purely photographic.
+- If you feel tempted to add any illustrated or stylized elements - DON'T. Stay purely photographic.
 - Cinematic warm lighting, soft depth of field, bokeh background
 - Rich detail in faces, clothing, textures, and environment
 - Professional DSLR photography quality
@@ -82,7 +91,7 @@ COMPOSITION:
   const parts = response.candidates?.[0]?.content?.parts
   if (!parts) throw new Error('No image generated')
 
-  const imagePart = parts.find((p) => p.inlineData?.mimeType?.startsWith('image/'))
+  const imagePart = parts.find((part) => part.inlineData?.mimeType?.startsWith('image/'))
   if (!imagePart?.inlineData) throw new Error('No image in response')
 
   return Buffer.from(imagePart.inlineData.data, 'base64')

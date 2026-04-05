@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import LogoutButton from '@/components/ui/LogoutButton'
 import { buildMetadata } from '@/lib/metadata'
 import { createClient } from '@/lib/supabase/server'
 import { BOOK_STATUS_LABELS, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
@@ -131,15 +130,14 @@ export default async function BooksPage() {
     return (
       <main className="min-h-dvh bg-[#FFF9F0] px-4 py-10 md:px-8">
         <div className="mx-auto max-w-4xl">
-          <header className="mb-10 flex flex-col gap-5 rounded-[2rem] border border-coral-100 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+          <section className="mb-10 rounded-[2rem] border border-coral-100 bg-white p-6 shadow-sm">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">האזור האישי</p>
-              <h1 className="mt-3 text-3xl font-black text-[#1a1a2e]">הספרים שלי</h1>
+              <h1 className="text-3xl font-black text-[#1a1a2e]">הספרים שלי</h1>
               <p className="mt-2 text-sm leading-7 text-gray-600">
                 כדי לראות ספרים שנשמרו, לעקוב אחרי יצירה או לחזור לעריכה, צריך להתחבר לחשבון.
               </p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Link href="/login?returnTo=/books">
                 <Button size="md">כניסה</Button>
               </Link>
@@ -149,7 +147,7 @@ export default async function BooksPage() {
                 </Button>
               </Link>
             </div>
-          </header>
+          </section>
         </div>
       </main>
     )
@@ -175,29 +173,6 @@ export default async function BooksPage() {
   return (
     <main className="min-h-dvh bg-[#FFF9F0] px-4 py-8 md:px-8 md:py-10">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-8 flex flex-col gap-5 rounded-[2rem] border border-coral-100 bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">האזור האישי</p>
-            <h1 className="mt-3 text-3xl font-black text-[#1a1a2e]">הספרים שלי</h1>
-            <p className="mt-2 text-sm leading-7 text-gray-600">
-              כאן רואים מה בתהליך, מה מוכן לקריאה, ואיפה צריך לנסות שוב או להמשיך משם.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <LogoutButton className="rounded-[1.5rem] border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900">
-              התנתקות
-            </LogoutButton>
-            <Link href="/">
-              <Button variant="ghost" size="md">
-                חזרה לאתר
-              </Button>
-            </Link>
-            <Link href="/create">
-              <Button size="md">ספר חדש</Button>
-            </Link>
-          </div>
-        </header>
-
         {!books.length ? (
           <section className="rounded-[2rem] border border-dashed border-coral-200 bg-white/70 p-8 text-center shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">ספר ראשון</p>
