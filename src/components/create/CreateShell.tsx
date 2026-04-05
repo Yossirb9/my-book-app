@@ -35,9 +35,10 @@ export default function CreateShell({
   onBack,
   badge,
 }: CreateShellProps) {
-  const params = useCreateBookStore((state) => state.params)
+  const { params, setStep } = useCreateBookStore()
   const detail = CREATE_STEP_DETAILS[step - 1]
   const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
+
   const backControl = onBack ? (
     <button type="button" onClick={onBack} className="text-sm font-medium text-white/60 transition-colors hover:text-white">
       חזרה
@@ -66,7 +67,7 @@ export default function CreateShell({
               <p className="mt-4 text-sm leading-7 text-white/65">{detail.description}</p>
             </div>
 
-            <StepProgress currentStep={step} />
+            <StepProgress currentStep={step} onStepClick={setStep} />
 
             <div className="mt-8 space-y-3">
               <SummaryRow label="נושא" value={params.template ? TEMPLATE_LABELS[params.template] : 'עדיין לא נבחר'} />
@@ -79,13 +80,6 @@ export default function CreateShell({
                 label="טון"
                 value={params.emotionalDirection ? DIRECTION_LABELS[params.emotionalDirection] : 'טרם הוגדר'}
               />
-            </div>
-
-            <div className="mt-8 rounded-[1.5rem] border border-coral-400/15 bg-coral-500/10 p-4">
-              <p className="text-sm font-semibold text-coral-100">חוויה רחבה לדסקטופ</p>
-              <p className="mt-2 text-sm leading-6 text-white/60">
-                המסך הזה בנוי כמו קטלוג בחירה: מידע קבוע בצד, בחירות גדולות וברורות במרכז, ומעבר שלב רק כשבאמת מוכנים.
-              </p>
             </div>
           </div>
         </aside>
@@ -102,7 +96,7 @@ export default function CreateShell({
               <p className="mt-2 text-sm leading-7 text-white/70">{detail.description}</p>
             </div>
             <div className="mt-5">
-              <StepProgress currentStep={step} />
+              <StepProgress currentStep={step} onStepClick={setStep} />
             </div>
           </div>
 

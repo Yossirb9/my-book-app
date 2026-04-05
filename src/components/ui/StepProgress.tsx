@@ -6,13 +6,19 @@ import { cn } from '@/lib/utils'
 interface StepProgressProps {
   currentStep: number
   totalSteps?: number
+  onStepClick?: (step: number) => void
 }
 
-export function StepProgress({ currentStep, totalSteps = CREATE_STEP_LABELS.length }: StepProgressProps) {
+export function StepProgress({
+  currentStep,
+  totalSteps = CREATE_STEP_LABELS.length,
+  onStepClick,
+}: StepProgressProps) {
   const progress = `${Math.max(0, ((currentStep - 1) / Math.max(1, totalSteps - 1)) * 100)}%`
 
   return (
     <div className="w-full">
+      {/* מובייל */}
       <div className="flex items-center justify-between gap-3 lg:hidden">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral-300">
@@ -28,6 +34,7 @@ export function StepProgress({ currentStep, totalSteps = CREATE_STEP_LABELS.leng
         </div>
       </div>
 
+      {/* דסקטופ */}
       <div className="hidden lg:block">
         <div className="mb-6 h-1.5 w-full rounded-full bg-white/10">
           <div
@@ -41,15 +48,25 @@ export function StepProgress({ currentStep, totalSteps = CREATE_STEP_LABELS.leng
             const stepNumber = index + 1
             const isDone = stepNumber < currentStep
             const isCurrent = stepNumber === currentStep
+            const isClickable = isDone && onStepClick
 
             return (
               <div
                 key={label}
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onClick={() => isClickable && onStepClick(stepNumber)}
+                onKeyDown={(e) => {
+                  if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                    onStepClick(stepNumber)
+                  }
+                }}
                 className={cn(
                   'flex items-center gap-4 rounded-[1.35rem] border px-4 py-3 transition-all',
                   isCurrent && 'border-coral-300/40 bg-coral-500/12 shadow-[0_12px_30px_rgba(232,124,83,0.12)]',
                   isDone && 'border-white/10 bg-white/[0.06]',
-                  !isCurrent && !isDone && 'border-white/8 bg-transparent'
+                  !isCurrent && !isDone && 'border-white/8 bg-transparent',
+                  isClickable && 'cursor-pointer hover:bg-white/10 hover:border-white/20'
                 )}
               >
                 <span
@@ -67,7 +84,7 @@ export function StepProgress({ currentStep, totalSteps = CREATE_STEP_LABELS.leng
                     {label}
                   </p>
                   <p className="mt-1 text-[11px] leading-5 text-white/40">
-                    {isCurrent ? 'השלב הפעיל עכשיו' : isDone ? 'בוצע ונשמר' : 'ממתין לבחירה'}
+                    {isCurrent ? 'השלב הפעיל עכשיו' : isDone ? 'לחצו לחזרה' : 'ממתין לבחירה'}
                   </p>
                 </div>
               </div>

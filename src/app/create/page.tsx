@@ -3,11 +3,10 @@
 import { useCreateBookStore } from '@/store/createBookStore'
 import StepBookType from '@/components/create/StepBookType'
 import StepCharacters from '@/components/create/StepCharacters'
-import StepParameters from '@/components/create/StepParameters'
+import StepDetails from '@/components/create/StepDetails'
 import StepPayment from '@/components/create/StepPayment'
-import StepPersonalization from '@/components/create/StepPersonalization'
 
-const STEPS = [StepBookType, StepParameters, StepCharacters, StepPersonalization, StepPayment]
+const STEPS = [StepBookType, StepCharacters, StepDetails, StepPayment]
 
 export default function CreatePage() {
   const step = useCreateBookStore((state) => state.step)

@@ -97,7 +97,7 @@ export default function StepPayment() {
 
   return (
     <CreateShell
-      step={5}
+      step={4}
       onBack={prevStep}
       badge="מסך החלטה"
       footer={

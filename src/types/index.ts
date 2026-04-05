@@ -13,6 +13,15 @@ export type BookTemplate =
   | 'independence_day'
   | 'self_confidence'
   | 'emotional_journal'
+  // הרפתקה
+  | 'adventure_magic_land'
+  | 'adventure_ocean'
+  | 'adventure_space'
+  // חוסן ועמידות
+  | 'resilience_failure'
+  | 'resilience_friendship'
+  | 'resilience_moving'
+  | 'resilience_worry'
 
 export type JournalPageType =
   | 'cover'
@@ -115,22 +124,8 @@ export const REGEN_LIMITS: Record<'standard' | 'premium', { image: number; text:
   premium: { image: 8, text: 8 },
 }
 
-export const TEMPLATE_LABELS: Record<BookTemplate, string> = {
-  new_sibling: 'אח או אחות חדשים',
-  birthday_child: 'יום הולדת',
-  potty_training: 'גמילה מחיתולים',
-  family_love: 'ספר אהבה משפחתי',
-  fear_of_dark: 'פחד מהחושך',
-  first_day_school: 'יום ראשון בגן או בבית הספר',
-  first_haircut: 'תספורת ראשונה',
-  lost_tooth: 'השן הראשונה',
-  new_pet: 'חיית מחמד חדשה',
-  two_homes: 'שני בתים',
-  goodbye_pacifier: 'נפרדים מהמוצץ',
-  independence_day: 'יום העצמאות',
-  self_confidence: 'ביטחון עצמי',
-  emotional_journal: 'יומן רגשי משפחתי',
-}
+// TEMPLATE_LABELS מגיע מהקובץ המרכזי — ראו src/lib/bookTemplates.ts
+export { TEMPLATE_LABELS } from '@/lib/bookTemplates'
 
 export const DIRECTION_LABELS: Record<EmotionalDirection, string> = {
   emotional: 'מרגש ועדין',

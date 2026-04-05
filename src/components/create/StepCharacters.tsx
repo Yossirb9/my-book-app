@@ -73,13 +73,13 @@ export default function StepCharacters() {
 
   return (
     <CreateShell
-      step={3}
+      step={2}
       onBack={prevStep}
       badge="ליהוק המשפחה"
       footer={
         <div className="lg:min-w-[18rem]">
           <Button size="lg" onClick={nextStep} disabled={!isValid} className="w-full lg:min-w-[18rem]">
-            המשיכו להתאמה האישית
+            המשיכו לפרטי הספר
           </Button>
         </div>
       }
