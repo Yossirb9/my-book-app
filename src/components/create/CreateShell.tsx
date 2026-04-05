@@ -86,7 +86,7 @@ export default function CreateShell({
         </aside>
 
         <section className="flex min-h-dvh flex-col lg:min-h-0">
-          <div className="border-b border-black/5 bg-[#11111a] px-4 py-5 text-white shadow-[0_8px_24px_rgba(12,12,18,0.14)] lg:hidden">
+          <div className="border-b border-black/5 bg-[#11111a] px-4 py-4 text-white shadow-[0_8px_24px_rgba(12,12,18,0.14)] lg:hidden">
             <div className="flex items-center justify-between gap-4">
               {backControl}
               {badge ? <Badge variant="new">{badge}</Badge> : <div className="w-12" />}
@@ -102,7 +102,7 @@ export default function CreateShell({
           </div>
 
           <div className="flex-1 px-4 py-4 lg:px-0 lg:py-0">
-            <div className="create-stage min-h-full overflow-hidden rounded-[2.4rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,250,243,0.98)_0%,rgba(255,244,230,0.99)_100%)] shadow-[0_24px_80px_rgba(158,118,85,0.12)]">
+            <div className="create-stage min-h-full overflow-hidden rounded-[1.8rem] border border-white/60 bg-[linear-gradient(180deg,rgba(255,250,243,0.98)_0%,rgba(255,244,230,0.99)_100%)] shadow-[0_24px_80px_rgba(158,118,85,0.12)] sm:rounded-[2.4rem]">
               <div className="hidden items-start justify-between gap-6 border-b border-black/5 px-8 py-7 lg:flex">
                 <div>
                   <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export default function CreateShell({
                 <div className="max-w-md text-right text-sm leading-7 text-gray-500">{detail.description}</div>
               </div>
 
-              <div className={cn('px-4 pb-24 pt-4 lg:px-8 lg:pb-8 lg:pt-8', footer ? 'lg:pb-28' : 'lg:pb-10')}>
+              <div className={cn('px-4 pb-40 pt-4 lg:px-8 lg:pb-8 lg:pt-8', footer ? 'lg:pb-28' : 'lg:pb-10')}>
                 {children}
               </div>
 

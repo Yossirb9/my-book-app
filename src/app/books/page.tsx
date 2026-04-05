@@ -192,7 +192,7 @@ export default async function BooksPage() {
           <div className="space-y-8">
             {generatingBooks.length ? (
               <section>
-                <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                   <div>
                     <h2 className="text-2xl font-black text-[#1a1a2e]">בתהליך יצירה</h2>
                     <p className="text-sm text-gray-500">הספרים האלה אמורים להיות ראשונים על הרדאר שלכם.</p>
@@ -209,7 +209,7 @@ export default async function BooksPage() {
 
             {failedBooks.length ? (
               <section>
-                <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                   <div>
                     <h2 className="text-2xl font-black text-[#1a1a2e]">דורש תשומת לב</h2>
                     <p className="text-sm text-gray-500">אם משהו נתקע, תוכלו להפעיל ניסיון נוסף מכאן.</p>
@@ -226,7 +226,7 @@ export default async function BooksPage() {
 
             {readyBooks.length ? (
               <section>
-                <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                   <div>
                     <h2 className="text-2xl font-black text-[#1a1a2e]">מוכנים לקריאה</h2>
                     <p className="text-sm text-gray-500">ספרים שכבר מוכנים לקרוא, להוריד או לערוך.</p>

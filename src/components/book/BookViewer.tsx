@@ -316,13 +316,13 @@ export default function BookViewer({
 
       {/* ── Top Bar ─────────────────────────────────────────── */}
       <header
-        className="shrink-0 flex items-center justify-between px-3 md:px-6 bg-black/50 backdrop-blur-sm border-b border-white/10"
+        className="shrink-0 flex items-center justify-between gap-2 border-b border-white/10 bg-black/50 px-3 backdrop-blur-sm md:px-6"
         style={{ height: '56px' }}
       >
-        <Link href="/books" className="text-white/60 text-sm hover:text-white transition-colors whitespace-nowrap">
+        <Link href="/books" className="text-xs text-white/60 transition-colors hover:text-white md:text-sm">
           ← הספרים שלי
         </Link>
-        <h1 className="text-white font-semibold text-sm md:text-base truncate mx-2" style={{ maxWidth: '200px' }}>
+        <h1 className="mx-1 min-w-0 flex-1 truncate text-center text-sm font-semibold text-white md:mx-2 md:text-base" style={{ maxWidth: '220px' }}>
           {book.title}
         </h1>
         <div className="flex items-center gap-2 shrink-0">

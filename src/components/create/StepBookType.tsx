@@ -29,7 +29,7 @@ export default function StepBookType() {
           <section key={category.id}>
 
             {/* כותרת קטגוריה */}
-            <div className="mb-4 flex flex-col gap-1 rounded-[1.5rem] border border-black/5 bg-white px-5 py-4 shadow-sm">
+            <div className="mb-4 flex flex-col gap-1 rounded-[1.5rem] border border-black/5 bg-white px-4 py-4 shadow-sm sm:px-5">
               <p className="text-lg font-black text-[#161625]">{category.label}</p>
               <p className="text-sm leading-6 text-gray-500">{category.hint}</p>
             </div>
@@ -45,7 +45,7 @@ export default function StepBookType() {
                     type="button"
                     onClick={() => handleSelect(template.id)}
                     className={cn(
-                      'group relative overflow-hidden rounded-[2rem] border p-5 text-right transition-all',
+                      'group relative overflow-hidden rounded-[2rem] border p-4 text-right transition-all sm:p-5',
                       selected
                         ? 'border-coral-300 bg-[linear-gradient(160deg,#fff8f1_0%,#fde7dd_100%)] shadow-[0_22px_45px_rgba(232,124,83,0.14)]'
                         : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(23,25,37,0.09)]'
@@ -53,7 +53,7 @@ export default function StepBookType() {
                   >
                     <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#e87c53_0%,#ffb347_100%)] opacity-0 transition-opacity group-hover:opacity-100" />
 
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="text-xl font-black text-[#161625]">{template.title}</h2>
@@ -70,7 +70,7 @@ export default function StepBookType() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex flex-wrap gap-2 text-xs text-gray-500">
                         <span className="rounded-full bg-[#FFF9F0] px-3 py-1">סיפור אישי</span>
                         <span className="rounded-full bg-[#FFF9F0] px-3 py-1">עברית מלאה</span>
@@ -111,7 +111,7 @@ export default function StepBookType() {
                   >
                     <div className="absolute inset-x-0 top-0 h-1 bg-teal-400 opacity-0 transition-opacity group-hover:opacity-100" />
 
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className={cn('text-xl font-black', selected ? 'text-white' : 'text-[#1a1a2e]')}>
@@ -130,7 +130,7 @@ export default function StepBookType() {
                       </span>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3">
+                    <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex flex-wrap gap-2 text-xs text-gray-500">
                         <span className="rounded-full bg-teal-50 px-3 py-1 text-teal-700">שאלות לשיח</span>
                         <span className="rounded-full bg-teal-50 px-3 py-1 text-teal-700">משפטי חיזוק</span>

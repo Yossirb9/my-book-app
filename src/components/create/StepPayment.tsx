@@ -233,7 +233,7 @@ export default function StepPayment() {
 
               <div className="bg-[linear-gradient(180deg,#fffaf3_0%,#fff4e6_100%)] p-6 lg:p-8">
                 <div className="rounded-[1.9rem] border border-coral-100 bg-white p-5 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                     <p className="text-sm font-semibold text-coral-700">הספר שבחרתם</p>
                     <Badge variant="popular">מוכן לאישור</Badge>
                   </div>
@@ -282,18 +282,18 @@ export default function StepPayment() {
           </section>
 
           <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <div>
                 <h2 className="text-2xl font-black text-[#161625]">אופן קבלת הספר</h2>
                 <p className="mt-2 text-sm leading-7 text-gray-600">
                   הבחירה כאן יוצרת גם הזמנה מסודרת במערכת התפעולית.
                 </p>
               </div>
-              <div className="flex rounded-full bg-[#FFF4E6] p-1">
+              <div className="flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-[#FFF4E6] p-1.5 sm:w-auto sm:flex-nowrap sm:gap-0 sm:rounded-full sm:p-1">
                 <button
                   type="button"
                   onClick={() => setDeliveryOption('digital')}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
                     orderDraft.deliveryOption === 'digital' ? 'bg-[#161625] text-white' : 'text-[#161625]'
                   }`}
                 >
@@ -302,7 +302,7 @@ export default function StepPayment() {
                 <button
                   type="button"
                   onClick={() => setDeliveryOption('physical')}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
                     orderDraft.deliveryOption === 'physical' ? 'bg-[#161625] text-white' : 'text-[#161625]'
                   }`}
                 >
@@ -356,7 +356,7 @@ export default function StepPayment() {
 
         <aside className="space-y-5">
           <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <p className="text-sm font-semibold text-gray-600">מחיר הספר</p>
                 <p className="mt-1 text-4xl font-black text-coral-700">₪{price}</p>

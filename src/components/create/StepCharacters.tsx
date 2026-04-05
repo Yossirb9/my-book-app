@@ -176,7 +176,7 @@ export default function StepCharacters() {
                     </div>
 
                     <div className="min-w-0">
-                      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant={missing.length ? 'default' : 'ready'}>
                             {missing.length ? `חסר: ${missing.join(', ')}` : 'מוכן ליצירה'}
@@ -198,7 +198,7 @@ export default function StepCharacters() {
                         </button>
                       </div>
 
-                      <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="grid gap-4 md:grid-cols-2">
                         <label className="flex flex-col gap-1.5">
                           <span className="text-sm font-semibold text-gray-700">שם הדמות</span>
                           <input

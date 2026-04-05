@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           דלגו לתוכן הראשי
         </a>
         {!isAdminHost ? <Navbar initialIsAuthenticated={isAuthenticated} /> : null}
-        <div id="main-content" tabIndex={-1} className={isAdminHost ? '' : 'mobile-container pb-16 md:pb-14'}>
+        <div id="main-content" tabIndex={-1} className={isAdminHost ? '' : 'mobile-container pb-24 md:pb-14'}>
           {children}
         </div>
         {!isAdminHost ? <Footer /> : null}

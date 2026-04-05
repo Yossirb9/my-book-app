@@ -61,7 +61,7 @@ function LoginForm() {
   }, [isReturningToCreate])
 
   return (
-    <div className="w-full max-w-md rounded-[2rem] border border-white bg-white p-8 shadow-lg shadow-coral-100/60">
+    <div className="w-full max-w-md rounded-[2rem] border border-white bg-white p-6 shadow-lg shadow-coral-100/60 sm:p-8">
       <div className="mb-8 text-center">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">כניסה לחשבון</p>
         <h1 className="mt-3 text-3xl font-black text-gray-900">חוזרים לספר שלכם</h1>

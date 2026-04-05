@@ -118,16 +118,16 @@ export default function AccessibilityMenu() {
   const displayActions = actions.slice(3)
 
   return (
-    <div ref={containerRef} className="fixed bottom-5 left-5 z-50">
+    <div ref={containerRef} className="fixed bottom-[4.8rem] left-3 z-50 md:bottom-5 md:left-5">
       <button
         type="button"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         aria-controls="accessibility-menu"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex items-center gap-2 rounded-full border border-coral-200 bg-white px-5 py-3 text-sm font-bold text-gray-900 shadow-[0_12px_30px_rgba(26,26,46,0.12)] transition hover:border-coral-400 hover:text-coral-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral-200"
+        className="flex items-center gap-2 rounded-full border border-coral-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-900 shadow-[0_12px_30px_rgba(26,26,46,0.12)] transition hover:border-coral-400 hover:text-coral-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-coral-200 md:px-5 md:py-3"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-coral-50 text-coral-600">א</span>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-coral-50 text-coral-600 md:h-7 md:w-7">א</span>
         נגישות
       </button>
 
@@ -136,7 +136,7 @@ export default function AccessibilityMenu() {
           id="accessibility-menu"
           role="dialog"
           aria-label="תפריט נגישות"
-          className="mt-3 w-[min(92vw,348px)] rounded-[1.6rem] border border-coral-100 bg-white p-4 shadow-[0_18px_44px_rgba(26,26,46,0.14)]"
+          className="mt-3 max-h-[min(70dvh,32rem)] w-[min(calc(100vw-1.5rem),348px)] overflow-y-auto rounded-[1.6rem] border border-coral-100 bg-white p-4 shadow-[0_18px_44px_rgba(26,26,46,0.14)]"
         >
           <div className="flex items-start justify-between gap-3">
             <div>

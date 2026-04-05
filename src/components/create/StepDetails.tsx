@@ -134,7 +134,7 @@ function BookDetails({
 
       {/* ניקוד */}
       <section>
-        <div className="flex items-center justify-between gap-4 rounded-[2rem] border border-black/5 bg-white px-5 py-4 shadow-sm">
+        <div className="flex flex-col items-start justify-between gap-4 rounded-[2rem] border border-black/5 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold text-gray-700">ניקוד בטקסט</p>
             <p className="text-xs text-gray-400">מומלץ לקהל צעיר או להקראה משותפת</p>
