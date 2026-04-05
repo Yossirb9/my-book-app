@@ -2,21 +2,14 @@
 
 import Button from '@/components/ui/Button'
 import CreateShell from '@/components/create/CreateShell'
-import { Input, Textarea } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { AgeGroup, BookFormat, BookParams, EmotionalDirection, JOURNAL_TIME_LABELS } from '@/types'
+import { AgeGroup, BookFormat, BookParams, JOURNAL_TIME_LABELS } from '@/types'
 
 // ---------------------------------------------------------------
 // נתוני בחירה
 // ---------------------------------------------------------------
-
-const directions: { id: EmotionalDirection; label: string; hint: string }[] = [
-  { id: 'emotional',    label: 'מרגש ועדין',       hint: 'מתאים לסיפורים עם לב, קירבה ומסר רגשי.' },
-  { id: 'funny',        label: 'קליל ומשפחתי',      hint: 'טון שובב, מחויך וכזה שכיף לקרוא יחד.' },
-  { id: 'empowering',   label: 'מעצים ובטוח',       hint: 'לרגעים שבהם רוצים לחזק מסוגלות וביטחון.' },
-  { id: 'adventurous',  label: 'הרפתקני ודמיוני',   hint: 'יותר תנועה, גילוי ותחושת מסע.' },
-]
 
 const ageGroups: { id: AgeGroup; label: string; hint: string }[] = [
   { id: '0-2', label: '0–2',  hint: 'משפטים קצרים מאוד' },
@@ -30,12 +23,6 @@ const formats: { id: BookFormat; label: string; hint: string }[] = [
   { id: 'portrait', label: 'לאורך',   hint: 'מרגיש כמו ספר ילדים קלאסי.' },
 ]
 
-const languageLevels: { id: 'toddler' | 'kindergarten' | 'early_reader'; label: string; hint: string }[] = [
-  { id: 'toddler',       label: 'פעוטות',        hint: 'קצב רגוע ומשפטים קצרים מאוד' },
-  { id: 'kindergarten',  label: 'גן',             hint: 'שפה ביתית וקריאה זורמת' },
-  { id: 'early_reader',  label: 'ראשית קריאה',   hint: 'טקסט עשיר לילדים גדולים יותר' },
-]
-
 const timePeriods = Object.entries(JOURNAL_TIME_LABELS) as Array<['year' | 'quarter' | 'month', string]>
 
 // ---------------------------------------------------------------
@@ -43,14 +30,14 @@ const timePeriods = Object.entries(JOURNAL_TIME_LABELS) as Array<['year' | 'quar
 // ---------------------------------------------------------------
 
 export default function StepDetails() {
-  const { nextStep, prevStep, params, setAgeGroup, setDirection, setFormat, setPersonalization } =
+  const { nextStep, prevStep, params, setAgeGroup, setFormat, setPersonalization } =
     useCreateBookStore()
 
   const isJournal = params.template === 'emotional_journal'
 
   const isValid = isJournal
-    ? Boolean(params.emotionalDirection && params.ageGroup && params.journalTimePeriod && params.journalChildTraits?.trim())
-    : Boolean(params.emotionalDirection && params.ageGroup && params.format && params.relationship?.trim())
+    ? Boolean(params.ageGroup && params.journalTimePeriod && params.journalChildTraits?.trim())
+    : Boolean(params.ageGroup && params.format)
 
   return (
     <CreateShell
@@ -69,7 +56,6 @@ export default function StepDetails() {
         <JournalDetails
           params={params}
           setPersonalization={setPersonalization}
-          setDirection={setDirection}
           setAgeGroup={setAgeGroup}
           timePeriods={timePeriods}
         />
@@ -77,7 +63,6 @@ export default function StepDetails() {
         <BookDetails
           params={params}
           setPersonalization={setPersonalization}
-          setDirection={setDirection}
           setAgeGroup={setAgeGroup}
           setFormat={setFormat}
         />
@@ -93,34 +78,16 @@ export default function StepDetails() {
 function BookDetails({
   params,
   setPersonalization,
-  setDirection,
   setAgeGroup,
   setFormat,
 }: {
   params: Partial<BookParams>
   setPersonalization: (data: Partial<BookParams>) => void
-  setDirection: (d: EmotionalDirection) => void
   setAgeGroup: (a: AgeGroup) => void
   setFormat: (f: BookFormat) => void
 }) {
   return (
     <div className="space-y-10">
-
-      {/* טון הסיפור */}
-      <section>
-        <SectionHeader title="מה הטון של הסיפור?" hint="משפיע על הכתיבה, הסצנות והאווירה הכללית." />
-        <div className="grid gap-4 xl:grid-cols-2">
-          {directions.map((d) => (
-            <OptionCard
-              key={d.id}
-              selected={params.emotionalDirection === d.id}
-              onClick={() => setDirection(d.id)}
-              title={d.label}
-              hint={d.hint}
-            />
-          ))}
-        </div>
-      </section>
 
       {/* גיל + פורמט */}
       <section className="grid gap-6 xl:grid-cols-2">
@@ -169,28 +136,15 @@ function BookDetails({
       <section className="space-y-4">
         <SectionHeader title="לב הסיפור" hint="הפרטים האלו הם מה שגורם לספר להרגיש אמיתי ואישי." />
 
-        <div className="grid gap-4 xl:grid-cols-2">
-          <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-            <Input
-              label="מה הקשר בין הדמויות?"
-              placeholder="למשל: אחות גדולה ואח קטן, ילדה וסבא, שני אחים עם כלב"
-              value={params.relationship || ''}
-              onChange={(e) => setPersonalization({ relationship: e.target.value })}
-              helperText="ישפיע על האינטראקציה, הטון והקשר בסיפור."
-              required
-            />
-          </div>
-
-          <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-            <Textarea
-              label="איזה מסר תרצו שהספר יעביר?"
-              rows={4}
-              placeholder="למשל: שגם כשיש שינוי בבית, תמיד נשאר מקום לאהבה."
-              value={params.desiredMessage || ''}
-              onChange={(e) => setPersonalization({ desiredMessage: e.target.value })}
-              helperText="לא חובה, אבל עוזר לנו לדייק את הלב של העלילה."
-            />
-          </div>
+        <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
+          <Textarea
+            label="איזה מסר תרצו שהספר יעביר?"
+            rows={4}
+            placeholder="למשל: שגם כשיש שינוי בבית, תמיד נשאר מקום לאהבה."
+            value={params.desiredMessage || ''}
+            onChange={(e) => setPersonalization({ desiredMessage: e.target.value })}
+            helperText="לא חובה, אבל עוזר לנו לדייק את הלב של העלילה."
+          />
         </div>
 
         <div className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
@@ -206,23 +160,8 @@ function BookDetails({
         </div>
       </section>
 
-      {/* שפה וניקוד */}
-      <section className="grid gap-4 xl:grid-cols-2">
-        <div className="space-y-3">
-          <SectionHeader title="רמת השפה" hint="מתאימים את אורך המשפטים, הקצב ורמת המורכבות." />
-          <div className="grid gap-3">
-            {languageLevels.map((lv) => (
-              <OptionCard
-                key={lv.id}
-                selected={params.languageLevel === lv.id}
-                onClick={() => setPersonalization({ languageLevel: lv.id })}
-                title={lv.label}
-                hint={lv.hint}
-              />
-            ))}
-          </div>
-        </div>
-
+      {/* ניקוד */}
+      <section>
         <div className="rounded-[2rem] border border-black/5 bg-[#171925] p-5 text-white shadow-[0_20px_40px_rgba(23,25,37,0.18)]">
           <div className="flex items-center justify-between gap-4">
             <div>
@@ -264,34 +203,16 @@ function BookDetails({
 function JournalDetails({
   params,
   setPersonalization,
-  setDirection,
   setAgeGroup,
   timePeriods,
 }: {
   params: Partial<BookParams>
   setPersonalization: (data: Partial<BookParams>) => void
-  setDirection: (d: EmotionalDirection) => void
   setAgeGroup: (a: AgeGroup) => void
   timePeriods: Array<['year' | 'quarter' | 'month', string]>
 }) {
   return (
     <div className="space-y-10">
-
-      {/* טון */}
-      <section>
-        <SectionHeader title="מה הטון של היומן?" hint="משפיע על שפת האישורים, השאלות והמסרים." />
-        <div className="grid gap-4 xl:grid-cols-2">
-          {directions.map((d) => (
-            <OptionCard
-              key={d.id}
-              selected={params.emotionalDirection === d.id}
-              onClick={() => setDirection(d.id)}
-              title={d.label}
-              hint={d.hint}
-            />
-          ))}
-        </div>
-      </section>
 
       {/* גיל + תקופה */}
       <section className="grid gap-6 xl:grid-cols-2">

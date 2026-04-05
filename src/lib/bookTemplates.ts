@@ -301,6 +301,30 @@ export const TEMPLATE_CONTEXT: Record<BookTemplate, string> = {
 // =============================================================
 //  תוויות לתצוגה — שם קצר לכל תבנית
 // =============================================================
+export const TEMPLATE_DIRECTION: Record<BookTemplate, 'emotional' | 'funny' | 'empowering' | 'adventurous'> = {
+  birthday_child: 'funny',
+  new_sibling: 'emotional',
+  self_confidence: 'empowering',
+  first_day_school: 'emotional',
+  potty_training: 'empowering',
+  goodbye_pacifier: 'emotional',
+  first_haircut: 'funny',
+  lost_tooth: 'funny',
+  family_love: 'emotional',
+  new_pet: 'adventurous',
+  two_homes: 'emotional',
+  fear_of_dark: 'empowering',
+  independence_day: 'empowering',
+  adventure_magic_land: 'adventurous',
+  adventure_ocean: 'adventurous',
+  adventure_space: 'adventurous',
+  resilience_failure: 'empowering',
+  resilience_friendship: 'empowering',
+  resilience_moving: 'emotional',
+  resilience_worry: 'emotional',
+  emotional_journal: 'emotional',
+}
+
 export const TEMPLATE_LABELS: Record<BookTemplate, string> = {
   new_sibling: 'אח או אחות חדשים',
   birthday_child: 'יום הולדת',

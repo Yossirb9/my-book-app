@@ -1,13 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { BookParams, BookLength } from '@/types'
-import { TEMPLATE_CONTEXT } from '@/lib/bookTemplates'
+import { TEMPLATE_CONTEXT, TEMPLATE_DIRECTION } from '@/lib/bookTemplates'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 const PAGE_COUNT: Record<BookLength, number> = {
-  short: 10,
-  medium: 18,
-  long: 24,
+  short: 12,
+  medium: 12,
+  long: 12,
 }
 
 const AGE_INSTRUCTIONS = {
@@ -47,10 +47,9 @@ export async function generateStory(params: BookParams): Promise<StoryPage[]> {
 **פרטי הסיפור:**
 - נושא: ${TEMPLATE_CONTEXT[params.template]}
 - דמויות: ${characterNames}
-- קשר: ${params.relationship || 'לא צוין'}
 - מסר: ${params.desiredMessage || 'לא צוין'}
 - פרטים אישיים: ${params.personalDetails || 'לא צוין'}
-- כיוון רגשי: ${DIRECTION_INSTRUCTIONS[params.emotionalDirection]}
+- כיוון רגשי: ${DIRECTION_INSTRUCTIONS[TEMPLATE_DIRECTION[params.template]]}
 - גיל יעד: ${AGE_INSTRUCTIONS[params.ageGroup]}
 - ניקוד: ${params.includeNikud ? 'כתוב עם ניקוד מלא' : 'ללא ניקוד'}
 

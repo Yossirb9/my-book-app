@@ -57,7 +57,7 @@ export interface Character {
 
 export interface BookParams {
   template: BookTemplate
-  emotionalDirection: EmotionalDirection
+  emotionalDirection?: EmotionalDirection
   ageGroup: AgeGroup
   length: BookLength
   format: BookFormat
