@@ -3,29 +3,77 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
-import Button from '@/components/ui/Button'
-import Badge from '@/components/ui/Badge'
 import CreateShell from '@/components/create/CreateShell'
+import Badge from '@/components/ui/Badge'
+import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { BOOK_PRICES, DIRECTION_LABELS, JOURNAL_PRICE, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
+import {
+  BOOK_PRICES,
+  DIRECTION_LABELS,
+  JOURNAL_PRICE,
+  LENGTH_PAGES,
+  OrderDraftInput,
+  TEMPLATE_LABELS,
+} from '@/types'
 
 const nextSteps = [
-  'מאשרים את ההזמנה ומתחילים את היצירה.',
-  'המערכת כותבת את הסיפור, מייצרת איורים ומכינה PDF.',
-  'מקבלים ספר מוכן לקריאה, הורדה ועריכה בסיסית.',
+  'אנחנו פותחים הזמנה מסודרת ושומרים אותה גם במערכת ה-CRM.',
+  'המנוע כותב את הסיפור, מייצר איורים ומכין PDF.',
+  'אם בחרתם ספר מודפס, ההזמנה תופיע אוטומטית בלוח ה-fulfillment.',
 ]
 
+function ShippingField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+}) {
+  return (
+    <label className="rounded-[1.25rem] bg-[#FFF9F0] p-4">
+      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="mt-2 w-full rounded-[1rem] border border-coral-100 bg-white px-4 py-3 text-sm outline-none"
+      />
+    </label>
+  )
+}
+
 export default function StepPayment() {
-  const { params, prevStep, reset, setShowAuthGate, showAuthGate } = useCreateBookStore()
+  const {
+    params,
+    orderDraft,
+    prevStep,
+    reset,
+    setShowAuthGate,
+    showAuthGate,
+    setDeliveryOption,
+    setOrderDraft,
+  } = useCreateBookStore()
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const isJournal = params.template === 'emotional_journal'
-  const price = isJournal ? JOURNAL_PRICE : (params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short)
-  const totalPagesLabel = isJournal ? '30 עמודים · 5 פרקים' : (params.length ? LENGTH_PAGES[params.length].label : LENGTH_PAGES.short.label)
+  const price = isJournal
+    ? JOURNAL_PRICE
+    : params.length
+      ? BOOK_PRICES[params.length]
+      : BOOK_PRICES.short
+  const totalPagesLabel = isJournal
+    ? '30 עמודים · 5 פרקים'
+    : params.length
+      ? LENGTH_PAGES[params.length].label
+      : LENGTH_PAGES.short.label
   const mainCharacter = params.characters?.find((character) => character.role === 'main')?.name
   const estimatedTime = useMemo(() => {
     if (isJournal) return 'כ-6 דקות'
@@ -53,9 +101,28 @@ export default function StepPayment() {
     return () => subscription.unsubscribe()
   }, [setShowAuthGate])
 
+  const updateOrderDraft = (data: Partial<OrderDraftInput>) => {
+    setOrderDraft(data)
+  }
+
+  const updateShippingAddress = (data: Partial<NonNullable<OrderDraftInput['shippingAddress']>>) => {
+    setOrderDraft({ shippingAddress: data })
+  }
+
   const handleConfirm = async () => {
     if (!isAuthenticated) {
       setShowAuthGate(true)
+      return
+    }
+
+    if (
+      orderDraft.deliveryOption === 'physical' &&
+      (!orderDraft.shippingAddress?.recipientName ||
+        !orderDraft.shippingAddress?.phone ||
+        !orderDraft.shippingAddress?.addressLine1 ||
+        !orderDraft.shippingAddress?.city)
+    ) {
+      setError('כדי להזמין ספר מודפס צריך להשלים שם נמען, טלפון, כתובת ועיר.')
       return
     }
 
@@ -66,7 +133,7 @@ export default function StepPayment() {
       const response = await fetch('/api/books/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ params }),
+        body: JSON.stringify({ params, orderDraft }),
       })
 
       const data = await response.json()
@@ -117,13 +184,17 @@ export default function StepPayment() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-300">Preview</p>
                 <h2 className="mt-4 text-3xl font-black leading-tight">
                   {isJournal
-                    ? mainCharacter ? `היומן של ${mainCharacter}` : 'היומן שלכם'
-                    : mainCharacter ? `הספר של ${mainCharacter}` : 'הספר שלכם'}
+                    ? mainCharacter
+                      ? `היומן של ${mainCharacter}`
+                      : 'היומן שלכם'
+                    : mainCharacter
+                      ? `הספר של ${mainCharacter}`
+                      : 'הספר שלכם'}
                 </h2>
                 <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">
                   {isJournal
-                    ? 'יומן העצמה משפחתי עם 5 פרקים, 30 עמודים, שאלות לשיח ואיורים מותאמים אישית.'
-                    : 'ספר מותאם אישית בעברית, עם דמויות אמיתיות, עלילה שנבנית סביב המשפחה שלכם וקובץ PDF מוכן לקריאה.'}
+                    ? 'יומן העצמה משפחתי עם 5 פרקים, 30 עמודים ושאלות לשיח.'
+                    : 'ספר מותאם אישית בעברית עם דמויות אמיתיות, עלילה מקורית ו-PDF מוכן לקריאה.'}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[1.5rem] bg-white/8 p-4">
@@ -186,10 +257,84 @@ export default function StepPayment() {
               </div>
               <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">מסר והקשר</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">{params.relationship || 'לא הוגדר עדיין קשר בין הדמויות'}</p>
+                <p className="mt-2 text-lg font-black text-[#161625]">
+                  {params.relationship || 'לא הוגדר עדיין קשר בין הדמויות'}
+                </p>
                 <p className="mt-1 text-sm text-gray-500">{params.includeNikud ? 'עם ניקוד' : 'ללא ניקוד'}</p>
               </div>
             </div>
+          </section>
+
+          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-black text-[#161625]">אופן קבלת הספר</h2>
+                <p className="mt-2 text-sm leading-7 text-gray-600">
+                  הבחירה כאן יוצרת גם הזמנה מסודרת במערכת התפעולית.
+                </p>
+              </div>
+              <div className="flex rounded-full bg-[#FFF4E6] p-1">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryOption('digital')}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    orderDraft.deliveryOption === 'digital' ? 'bg-[#161625] text-white' : 'text-[#161625]'
+                  }`}
+                >
+                  PDF דיגיטלי
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryOption('physical')}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                    orderDraft.deliveryOption === 'physical' ? 'bg-[#161625] text-white' : 'text-[#161625]'
+                  }`}
+                >
+                  ספר מודפס
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-2">
+              <ShippingField
+                label="קוד קופון"
+                value={orderDraft.promotionCode || ''}
+                onChange={(value) => updateOrderDraft({ promotionCode: value })}
+                placeholder="SUMMER2026"
+              />
+            </div>
+
+            {orderDraft.deliveryOption === 'physical' ? (
+              <div className="mt-5 grid gap-4 xl:grid-cols-2">
+                <ShippingField
+                  label="שם נמען"
+                  value={orderDraft.shippingAddress?.recipientName || ''}
+                  onChange={(value) => updateShippingAddress({ recipientName: value })}
+                />
+                <ShippingField
+                  label="טלפון"
+                  value={orderDraft.shippingAddress?.phone || ''}
+                  onChange={(value) => updateShippingAddress({ phone: value })}
+                />
+                <div className="xl:col-span-2">
+                  <ShippingField
+                    label="כתובת"
+                    value={orderDraft.shippingAddress?.addressLine1 || ''}
+                    onChange={(value) => updateShippingAddress({ addressLine1: value })}
+                  />
+                </div>
+                <ShippingField
+                  label="עיר"
+                  value={orderDraft.shippingAddress?.city || ''}
+                  onChange={(value) => updateShippingAddress({ city: value })}
+                />
+                <ShippingField
+                  label="מיקוד"
+                  value={orderDraft.shippingAddress?.postalCode || ''}
+                  onChange={(value) => updateShippingAddress({ postalCode: value })}
+                />
+              </div>
+            ) : null}
           </section>
         </section>
 
@@ -200,10 +345,12 @@ export default function StepPayment() {
                 <p className="text-sm font-semibold text-gray-600">מחיר הספר</p>
                 <p className="mt-1 text-4xl font-black text-coral-700">₪{price}</p>
               </div>
-              <Badge variant="popular">כולל PDF ועריכות בסיסיות</Badge>
+              <Badge variant="popular">
+                {orderDraft.deliveryOption === 'physical' ? 'כולל פתיחת fulfillment' : 'כולל PDF'}
+              </Badge>
             </div>
             <p className="mt-4 text-sm leading-7 text-gray-600">
-              אם בהמשך יוגדר checkout אמיתי, נעביר לתשלום מאובטח. כרגע האישור מתחיל את תהליך היצירה עצמו.
+              כרגע האישור פותח הזמנה ידנית חכמה. כשה-checkout של Stripe יושלם, אותו מסלול ידע לעבוד גם עם תשלום אמיתי.
             </p>
           </section>
 
@@ -225,7 +372,7 @@ export default function StepPayment() {
             <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
               <h2 className="text-xl font-black text-[#161625]">צריך רק להתחבר לפני שמתחילים</h2>
               <p className="mt-2 text-sm leading-7 text-gray-600">
-                מילאתם את כל הספר, והכול נשמר. התחברו או צרו חשבון, ונחזיר אתכם בדיוק לכאן כדי להתחיל ביצירה.
+                כל הפרטים נשמרו. התחברו או צרו חשבון, ונחזיר אתכם בדיוק לכאן כדי להתחיל ביצירה.
               </p>
               <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                 <Link href="/login?returnTo=/create" className="flex-1">

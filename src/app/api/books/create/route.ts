@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createOrderForBook, recordActivity } from '@/lib/crm/service'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { Json } from '@/lib/supabase/database.types'
-import { BookParams } from '@/types'
+import { BookParams, OrderDraftInput } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +17,10 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     const params: BookParams = body.params
+    const orderDraft: OrderDraftInput = body.orderDraft || {
+      deliveryOption: 'digital',
+      promotionCode: '',
+    }
 
     if (!params.template || !params.characters?.length) {
       return NextResponse.json({ error: 'Missing required params' }, { status: 400 })
@@ -86,8 +91,30 @@ export async function POST(req: NextRequest) {
     )
 
     await adminSupabase.from('characters').insert(characterInserts)
+    const { customer, order } = await createOrderForBook({
+      user,
+      book,
+      orderDraft,
+      params,
+    })
 
-    return NextResponse.json({ bookId: book.id })
+    if (!customer) {
+      throw new Error('Customer profile was not created')
+    }
+
+    await recordActivity({
+      customerId: customer.id,
+      orderId: order.id,
+      bookId: book.id,
+      actorType: 'customer',
+      eventType: 'book.created',
+      payload: {
+        template: params.template,
+        deliveryOption: orderDraft.deliveryOption,
+      },
+    })
+
+    return NextResponse.json({ bookId: book.id, orderId: order.id })
   } catch (error) {
     console.error('Create book error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

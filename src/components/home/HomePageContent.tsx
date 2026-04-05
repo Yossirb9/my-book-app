@@ -198,36 +198,6 @@ export default function HomePageContent() {
         </div>
       </section>
 
-      {/* מחיר */}
-      <section id="pricing" className="mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
-        <div className="mb-8 max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-coral-500">מחיר</p>
-          <h2 className="mt-3 text-3xl font-black text-[#1a1a2e]">ספר אחד. תמחור ברור.</h2>
-          <p className="mt-2 text-sm text-gray-500">מחיר יומן העצמה מופיע בסעיף היומן למטה.</p>
-        </div>
-        <div className="max-w-sm">
-          <article className="rounded-[2rem] border border-coral-200 bg-coral-50 p-6 shadow-sm shadow-coral-100/70">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-2xl font-black text-gray-900">ספר ילדים אישי</p>
-                <p className="mt-1 text-sm text-gray-500">24 עמודים — 12 סצנות מאוירות</p>
-              </div>
-              <Badge variant="popular">הכי נבחר</Badge>
-            </div>
-            <p className="mt-4 text-4xl font-black text-coral-700">₪129</p>
-            <p className="mt-4 text-sm font-semibold text-gray-900">מתאים ל: כל רגע משפחתי שראוי לסיפור.</p>
-            <p className="mt-2 text-sm leading-7 text-gray-600">
-              12 עמודי תוכן עם טקסט ואיור, עמוד שער, ו-PDF להורדה.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2 text-xs text-gray-600">
-              <span className="rounded-full bg-white/80 px-3 py-1">ספר בעברית מלאה</span>
-              <span className="rounded-full bg-white/80 px-3 py-1">PDF להורדה</span>
-              <span className="rounded-full bg-white/80 px-3 py-1">עריכות בסיסיות</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
       {/* מידע ו-FAQ */}
       <section className="border-y border-coral-100 bg-[#fff4e7]">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 md:grid-cols-[0.95fr_1.05fr] md:px-8 md:py-16">

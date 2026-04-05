@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { headers } from 'next/headers'
 import './globals.css'
 import Navbar from '@/components/ui/Navbar'
 import { siteMetadata } from '@/lib/metadata'
@@ -8,6 +9,8 @@ export const metadata = siteMetadata
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   let isAuthenticated = false
+  const requestHeaders = await headers()
+  const isAdminHost = requestHeaders.get('x-crm-host') === 'admin'
 
   try {
     const supabase = await createClient()
@@ -26,8 +29,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-dvh">
-        <Navbar initialIsAuthenticated={isAuthenticated} />
-        <div className="mobile-container">{children}</div>
+        {!isAdminHost ? <Navbar initialIsAuthenticated={isAuthenticated} /> : null}
+        <div className={isAdminHost ? '' : 'mobile-container'}>{children}</div>
       </body>
     </html>
   )

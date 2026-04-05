@@ -14,7 +14,7 @@ type NavbarProps = {
 
 const MARKETING_LINKS = [
   { href: '/#how-it-works', label: 'איך זה עובד' },
-  { href: '/#pricing', label: 'מחירים' },
+  { href: '/about', label: 'אנחנו' },
   { href: '/#faq', label: 'שאלות נפוצות' },
 ]
 
@@ -61,7 +61,14 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
 
         <div className="flex items-center gap-7 text-sm font-semibold text-gray-600">
           {MARKETING_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="transition-colors hover:text-coral-600">
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'transition-colors hover:text-coral-600',
+                pathname === '/about' && link.href === '/about' && 'text-coral-600'
+              )}
+            >
               {link.label}
             </Link>
           ))}
@@ -112,46 +119,63 @@ export default function Navbar({ initialIsAuthenticated = false }: NavbarProps) 
         </div>
       </div>
 
-      <div className="flex items-center justify-between px-4 py-3 md:hidden">
-        <Link href="/" className="flex items-center gap-2 text-coral-600">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral-50 text-sm font-black shadow-inner shadow-coral-100">
-            ספר
-          </span>
-          <div className="text-right">
-            <span className="block text-sm font-black text-gray-900">הספר שלי</span>
-            <span className="block text-[11px] text-gray-500">ספר אישי בעברית</span>
-          </div>
-        </Link>
+      <div className="px-4 py-3 md:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 text-coral-600">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral-50 text-sm font-black shadow-inner shadow-coral-100">
+              ספר
+            </span>
+            <div className="text-right">
+              <span className="block text-sm font-black text-gray-900">הספר שלי</span>
+              <span className="block text-[11px] text-gray-500">ספר אישי בעברית</span>
+            </div>
+          </Link>
 
-        <div className="flex items-center gap-2">
-          {isAuthenticated ? (
-            <>
-              <Link
-                href="/books"
-                className="rounded-full border border-coral-200 px-3 py-2 text-xs font-semibold text-coral-700"
-              >
-                הספרים שלי
-              </Link>
-              <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
-                התנתק
-              </LogoutButton>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700"
-              >
-                כניסה
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-full border border-coral-200 bg-coral-50 px-3 py-2 text-xs font-semibold text-coral-700"
-              >
-                הרשמה
-              </Link>
-            </>
-          )}
+          <div className="flex items-center gap-2">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/books"
+                  className="rounded-full border border-coral-200 px-3 py-2 text-xs font-semibold text-coral-700"
+                >
+                  הספרים שלי
+                </Link>
+                <LogoutButton className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
+                  התנתק
+                </LogoutButton>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-full border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700"
+                >
+                  כניסה
+                </Link>
+                <Link
+                  href="/signup"
+                  className="rounded-full border border-coral-200 bg-coral-50 px-3 py-2 text-xs font-semibold text-coral-700"
+                >
+                  הרשמה
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center gap-4 overflow-x-auto text-sm font-semibold text-gray-600 no-scrollbar">
+          {MARKETING_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                'whitespace-nowrap transition-colors hover:text-coral-600',
+                pathname === '/about' && link.href === '/about' && 'text-coral-600'
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       </div>
     </nav>

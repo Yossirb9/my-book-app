@@ -7,12 +7,20 @@ import {
   BookParams,
   BookTemplate,
   Character,
+  DeliveryOption,
   EmotionalDirection,
+  OrderDraftInput,
+  ShippingAddressDraft,
 } from '@/types'
+
+type OrderDraftPatch = Partial<Omit<OrderDraftInput, 'shippingAddress'>> & {
+  shippingAddress?: Partial<ShippingAddressDraft>
+}
 
 interface CreateBookState {
   step: number
   params: Partial<BookParams>
+  orderDraft: OrderDraftInput
   showAuthGate: boolean
   setStep: (step: number) => void
   nextStep: () => void
@@ -25,6 +33,8 @@ interface CreateBookState {
   setFormat: (format: BookFormat) => void
   setCharacters: (characters: Character[]) => void
   setPersonalization: (data: Partial<BookParams>) => void
+  setDeliveryOption: (deliveryOption: DeliveryOption) => void
+  setOrderDraft: (data: OrderDraftPatch) => void
   reset: () => void
 }
 
@@ -36,11 +46,25 @@ const initialParams: Partial<BookParams> = {
   characters: [],
 }
 
+const initialOrderDraft: OrderDraftInput = {
+  deliveryOption: 'digital',
+  promotionCode: '',
+  shippingAddress: {
+    recipientName: '',
+    phone: '',
+    addressLine1: '',
+    city: '',
+    postalCode: '',
+    country: 'IL',
+  },
+}
+
 export const useCreateBookStore = create<CreateBookState>()(
   persist(
     (set) => ({
       step: 1,
       params: initialParams,
+      orderDraft: initialOrderDraft,
       showAuthGate: false,
 
       setStep: (step) => set({ step }),
@@ -69,10 +93,32 @@ export const useCreateBookStore = create<CreateBookState>()(
       setPersonalization: (data) =>
         set((state) => ({ params: { ...state.params, ...data } })),
 
+      setDeliveryOption: (deliveryOption) =>
+        set((state) => ({
+          orderDraft: {
+            ...state.orderDraft,
+            deliveryOption,
+          },
+        })),
+
+      setOrderDraft: (data) =>
+        set((state) => ({
+          orderDraft: {
+            ...state.orderDraft,
+            ...data,
+            shippingAddress: {
+              ...initialOrderDraft.shippingAddress,
+              ...state.orderDraft.shippingAddress,
+              ...(data.shippingAddress || {}),
+            } as ShippingAddressDraft,
+          },
+        })),
+
       reset: () =>
         set({
           step: 1,
           params: initialParams,
+          orderDraft: initialOrderDraft,
           showAuthGate: false,
         }),
     }),
@@ -82,6 +128,7 @@ export const useCreateBookStore = create<CreateBookState>()(
       partialize: (state) => ({
         step: state.step,
         params: state.params,
+        orderDraft: state.orderDraft,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

@@ -13,11 +13,9 @@ export type BookTemplate =
   | 'independence_day'
   | 'self_confidence'
   | 'emotional_journal'
-  // הרפתקה
   | 'adventure_magic_land'
   | 'adventure_ocean'
   | 'adventure_space'
-  // חוסן ועמידות
   | 'resilience_failure'
   | 'resilience_friendship'
   | 'resilience_moving'
@@ -70,7 +68,6 @@ export interface BookParams {
   personalDetails?: string
   languageLevel: 'toddler' | 'kindergarten' | 'early_reader'
   includeNikud: boolean
-  // Journal-specific fields (only for emotional_journal template)
   journalTimePeriod?: 'year' | 'quarter' | 'month'
   journalChildTraits?: string
   journalParentMessage?: string
@@ -124,7 +121,6 @@ export const REGEN_LIMITS: Record<'standard' | 'premium', { image: number; text:
   premium: { image: 8, text: 8 },
 }
 
-// TEMPLATE_LABELS מגיע מהקובץ המרכזי — ראו src/lib/bookTemplates.ts
 export { TEMPLATE_LABELS } from '@/lib/bookTemplates'
 
 export const DIRECTION_LABELS: Record<EmotionalDirection, string> = {
@@ -146,3 +142,5 @@ export const BOOK_STATUS_LABELS: Record<BookStatus, string> = {
   ready: 'מוכן לקריאה',
   failed: 'נדרש ניסיון נוסף',
 }
+
+export * from '@/types/crm'
