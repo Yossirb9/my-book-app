@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 const PAGE_COUNT: Record<BookLength, number> = {
   short: 10,
   medium: 18,
-  long: 28,
+  long: 24,
 }
 
 const AGE_INSTRUCTIONS = {

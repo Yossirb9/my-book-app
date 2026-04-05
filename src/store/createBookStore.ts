@@ -32,6 +32,7 @@ const initialParams: Partial<BookParams> = {
   visualStyle: 'realistic',
   includeNikud: false,
   languageLevel: 'kindergarten',
+  length: 'long',
   characters: [],
 }
 

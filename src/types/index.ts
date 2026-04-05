@@ -137,7 +137,7 @@ export const DIRECTION_LABELS: Record<EmotionalDirection, string> = {
 export const LENGTH_PAGES: Record<BookLength, { min: number; max: number; label: string }> = {
   short: { min: 8, max: 12, label: '8-12 עמודים' },
   medium: { min: 16, max: 20, label: '16-20 עמודים' },
-  long: { min: 24, max: 32, label: '24-32 עמודים' },
+  long: { min: 24, max: 24, label: '24 עמודים' },
 }
 
 export const BOOK_STATUS_LABELS: Record<BookStatus, string> = {

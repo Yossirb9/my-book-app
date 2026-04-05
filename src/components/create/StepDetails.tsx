@@ -5,7 +5,7 @@ import CreateShell from '@/components/create/CreateShell'
 import { Input, Textarea } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { AgeGroup, BookFormat, BookLength, BookParams, EmotionalDirection, JOURNAL_TIME_LABELS } from '@/types'
+import { AgeGroup, BookFormat, BookParams, EmotionalDirection, JOURNAL_TIME_LABELS } from '@/types'
 
 // ---------------------------------------------------------------
 // נתוני בחירה
@@ -23,12 +23,6 @@ const ageGroups: { id: AgeGroup; label: string; hint: string }[] = [
   { id: '3-5', label: '3–5',  hint: 'הקראה ביתית פשוטה' },
   { id: '6-8', label: '6–8',  hint: 'יותר עלילה ועומק' },
   { id: '9+',  label: '9+',   hint: 'סיפור עשיר ומורכב' },
-]
-
-const lengths: { id: BookLength; label: string; pages: string; bestFor: string; scenes: string }[] = [
-  { id: 'short',  label: 'קצר',   pages: '8–12 עמ׳',   bestFor: 'מתנה קלילה או סיפור לפני השינה', scenes: '4–5 סצנות' },
-  { id: 'medium', label: 'בינוני', pages: '16–20 עמ׳',  bestFor: 'הבחירה המאוזנת לרוב המשפחות',    scenes: '6–8 סצנות' },
-  { id: 'long',   label: 'ארוך',  pages: '24–32 עמ׳',  bestFor: 'חוויה מלאה עם עלילה עשירה',       scenes: '9–12 סצנות' },
 ]
 
 const formats: { id: BookFormat; label: string; hint: string }[] = [
@@ -49,14 +43,14 @@ const timePeriods = Object.entries(JOURNAL_TIME_LABELS) as Array<['year' | 'quar
 // ---------------------------------------------------------------
 
 export default function StepDetails() {
-  const { nextStep, prevStep, params, setAgeGroup, setDirection, setFormat, setLength, setPersonalization } =
+  const { nextStep, prevStep, params, setAgeGroup, setDirection, setFormat, setPersonalization } =
     useCreateBookStore()
 
   const isJournal = params.template === 'emotional_journal'
 
   const isValid = isJournal
     ? Boolean(params.emotionalDirection && params.ageGroup && params.journalTimePeriod && params.journalChildTraits?.trim())
-    : Boolean(params.emotionalDirection && params.ageGroup && params.format && params.length && params.relationship?.trim())
+    : Boolean(params.emotionalDirection && params.ageGroup && params.format && params.relationship?.trim())
 
   return (
     <CreateShell
@@ -85,7 +79,6 @@ export default function StepDetails() {
           setPersonalization={setPersonalization}
           setDirection={setDirection}
           setAgeGroup={setAgeGroup}
-          setLength={setLength}
           setFormat={setFormat}
         />
       )}
@@ -102,14 +95,12 @@ function BookDetails({
   setPersonalization,
   setDirection,
   setAgeGroup,
-  setLength,
   setFormat,
 }: {
   params: Partial<BookParams>
   setPersonalization: (data: Partial<BookParams>) => void
   setDirection: (d: EmotionalDirection) => void
   setAgeGroup: (a: AgeGroup) => void
-  setLength: (l: BookLength) => void
   setFormat: (f: BookFormat) => void
 }) {
   return (
@@ -131,76 +122,45 @@ function BookDetails({
         </div>
       </section>
 
-      {/* גיל + אורך + פורמט */}
-      <section className="grid gap-8 2xl:grid-cols-[1.3fr_0.7fr]">
+      {/* גיל + פורמט */}
+      <section className="grid gap-6 xl:grid-cols-2">
 
-        {/* אורך */}
-        <div className="space-y-4">
-          <SectionHeader title="אורך הספר" hint="כאן בוחרים אם זו חוויה קצרה, מאוזנת או רחבה." />
-          <div className="grid gap-3">
-            {lengths.map((l) => (
+        {/* גיל יעד */}
+        <div className="space-y-3">
+          <SectionHeader title="גיל יעד" hint="מותאמת רמת השפה, קצב הקריאה ואורך המשפטים." />
+          <div className="grid grid-cols-2 gap-3">
+            {ageGroups.map((a) => (
               <button
-                key={l.id}
+                key={a.id}
                 type="button"
-                onClick={() => setLength(l.id)}
+                onClick={() => setAgeGroup(a.id)}
                 className={cn(
-                  'rounded-[2rem] border p-5 text-right transition-all',
-                  params.length === l.id
-                    ? 'border-coral-300 bg-[linear-gradient(160deg,#fff8f1_0%,#fde7dd_100%)] shadow-[0_22px_40px_rgba(232,124,83,0.14)]'
-                    : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_18px_32px_rgba(23,25,37,0.09)]'
+                  'rounded-[1.75rem] border p-4 text-right transition-all',
+                  params.ageGroup === a.id
+                    ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
+                    : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
                 )}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-xl font-black text-[#161625]">{l.label}</p>
-                    <p className="mt-0.5 text-sm text-gray-500">{l.pages}</p>
-                  </div>
-                  <span className="rounded-full bg-[#FFF3E7] px-3 py-1 text-xs font-semibold text-coral-700">{l.scenes}</span>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-gray-600">הכי מתאים ל־{l.bestFor}.</p>
+                <p className="text-xl font-black text-[#161625]">{a.label}</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">{a.hint}</p>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* גיל יעד */}
-          <div className="space-y-3">
-            <SectionHeader title="גיל יעד" hint="מותאמת רמת השפה, קצב הקריאה ואורך המשפטים." />
-            <div className="grid grid-cols-2 gap-3">
-              {ageGroups.map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  onClick={() => setAgeGroup(a.id)}
-                  className={cn(
-                    'rounded-[1.75rem] border p-4 text-right transition-all',
-                    params.ageGroup === a.id
-                      ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
-                      : 'border-black/5 bg-white shadow-sm hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
-                  )}
-                >
-                  <p className="text-xl font-black text-[#161625]">{a.label}</p>
-                  <p className="mt-1 text-xs leading-5 text-gray-500">{a.hint}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* פורמט */}
-          <div className="space-y-3">
-            <SectionHeader title="פורמט הספר" hint="כך הספר ירגיש במסך ובקובץ הסופי." />
-            <div className="grid gap-3">
-              {formats.map((f) => (
-                <OptionCard
-                  key={f.id}
-                  selected={params.format === f.id}
-                  onClick={() => setFormat(f.id)}
-                  title={f.label}
-                  hint={f.hint}
-                />
-              ))}
-            </div>
+        {/* פורמט */}
+        <div className="space-y-3">
+          <SectionHeader title="פורמט הספר" hint="כך הספר ירגיש במסך ובקובץ הסופי." />
+          <div className="grid gap-3">
+            {formats.map((f) => (
+              <OptionCard
+                key={f.id}
+                selected={params.format === f.id}
+                onClick={() => setFormat(f.id)}
+                title={f.label}
+                hint={f.hint}
+              />
+            ))}
           </div>
         </div>
       </section>
