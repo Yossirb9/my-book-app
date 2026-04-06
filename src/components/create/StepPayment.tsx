@@ -1,73 +1,38 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import CreateShell from '@/components/create/CreateShell'
 import { getBookTitlePreview, getCharacterDisplayRole, getPrimaryCharacter, isEnsembleTemplate } from '@/lib/characters'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
-import { createClient } from '@/lib/supabase/client'
 import { useCreateBookStore } from '@/store/createBookStore'
-import { BOOK_PRICES, BookFormat, JOURNAL_PRICE, OrderDraftInput, TEMPLATE_LABELS } from '@/types'
+import { BOOK_PRICES, JOURNAL_PRICE, LENGTH_PAGES, TEMPLATE_LABELS } from '@/types'
 
-const formats: { id: BookFormat; label: string; hint: string }[] = [
-  { id: 'square', label: 'מרובע', hint: 'נוח למסך ולמתנה אישית.' },
-  { id: 'portrait', label: 'לאורך', hint: 'מרגיש כמו ספר ילדים קלאסי.' },
-]
-
-const nextSteps = [
-  'אנחנו פותחים הזמנה מסודרת ושומרים אותה גם במערכת ה-CRM.',
-  'המנוע כותב את הסיפור, מייצר איורים ומכין PDF.',
-  'אם בחרתם ספר מודפס, ההזמנה תופיע אוטומטית בלוח ה-fulfillment.',
-]
-
-function ShippingField({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-}) {
+function SummaryItem({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return (
-    <label className="rounded-[1.25rem] bg-[#FFF9F0] p-4">
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">{label}</span>
-      <input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        className="mt-2 w-full rounded-[1rem] border border-coral-100 bg-white px-4 py-3 text-sm outline-none"
-      />
-    </label>
+    <div className="rounded-[1rem] border border-white/10 bg-white/6 px-3.5 py-2.5">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">{label}</p>
+      <p className="mt-1 text-base font-black leading-tight text-white">{value}</p>
+      {detail ? <p className="mt-0.5 text-xs leading-5 text-white/62">{detail}</p> : null}
+    </div>
   )
 }
 
 export default function StepPayment() {
-  const {
-    params,
-    orderDraft,
-    prevStep,
-    reset,
-    setShowAuthGate,
-    showAuthGate,
-    setDeliveryOption,
-    setFormat,
-    setOrderDraft,
-  } = useCreateBookStore()
-  const router = useRouter()
+  const { params, prevStep, setShowAuthGate, showAuthGate, reset } = useCreateBookStore()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const isJournal = params.template === 'emotional_journal'
   const isEnsemble = isEnsembleTemplate(params.template)
-  const price = isJournal ? JOURNAL_PRICE : params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short
-  const totalPagesLabel = isJournal ? '30 עמודים · 5 פרקים' : '12 עמודי תוכן ו-12 תמונות אישיות'
+  const digitalPrice = isJournal ? JOURNAL_PRICE : params.length ? BOOK_PRICES[params.length] : BOOK_PRICES.short
+  const totalPagesLabel = isJournal
+    ? '30 עמודים · 5 פרקים'
+    : `${LENGTH_PAGES[params.length || 'long'].label} · 24 תמונות`
   const mainCharacter =
     params.template && params.characters
       ? getPrimaryCharacter({ template: params.template, characters: params.characters })?.name
@@ -102,33 +67,9 @@ export default function StepPayment() {
     return () => subscription.unsubscribe()
   }, [setShowAuthGate])
 
-  const updateOrderDraft = (data: Partial<OrderDraftInput>) => {
-    setOrderDraft(data)
-  }
-
-  const updateShippingAddress = (data: Partial<NonNullable<OrderDraftInput['shippingAddress']>>) => {
-    setOrderDraft({ shippingAddress: data })
-  }
-
-  const handleConfirm = async () => {
+  const handleGoToPayment = async () => {
     if (!isAuthenticated) {
       setShowAuthGate(true)
-      return
-    }
-
-    if (!params.format) {
-      setError('אנא בחרו פורמט לספר.')
-      return
-    }
-
-    if (
-      orderDraft.deliveryOption === 'physical' &&
-      (!orderDraft.shippingAddress?.recipientName ||
-        !orderDraft.shippingAddress?.phone ||
-        !orderDraft.shippingAddress?.addressLine1 ||
-        !orderDraft.shippingAddress?.city)
-    ) {
-      setError('כדי להזמין ספר מודפס צריך להשלים שם נמען, טלפון, כתובת ועיר.')
       return
     }
 
@@ -136,10 +77,10 @@ export default function StepPayment() {
     setError('')
 
     try {
-      const response = await fetch('/api/books/create', {
+      const response = await fetch('/api/books/create-pending', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ params, orderDraft }),
+        body: JSON.stringify({ params }),
       })
 
       const data = await response.json()
@@ -150,17 +91,12 @@ export default function StepPayment() {
       }
 
       if (!response.ok) {
-        throw new Error(data.error || 'לא הצלחנו להתחיל את יצירת הספר כרגע.')
+        throw new Error(data.error || 'לא הצלחנו לשמור את הספר.')
       }
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl
-        return
-      }
-
-      const nextBookId = data.bookId as string
+      localStorage.setItem('pendingBookId', data.bookId as string)
       reset()
-      router.push(`/book/${nextBookId}/creating?start=1`)
+      window.location.href = 'https://pay.grow.link/8f93290f83a3d0fa830a20e9ebadfc93-MzI2MDA5Ng'
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : 'אירעה שגיאה לא צפויה.')
     } finally {
@@ -172,239 +108,121 @@ export default function StepPayment() {
     <CreateShell
       step={4}
       onBack={prevStep}
-      badge="מסך ההחלטה"
+      bare
       footer={
-        <div className="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[20rem]">
-          <Button size="lg" onClick={handleConfirm} loading={loading} className="w-full lg:min-w-[20rem]">
-            {isAuthenticated ? 'אשרו והתחילו ליצור' : 'התחברו כדי להתחיל יצירה'}
+        <div className="flex w-full flex-col gap-2 lg:w-auto lg:min-w-[20rem]">
+          <Button
+            size="lg"
+            onClick={handleGoToPayment}
+            loading={loading}
+            className="w-full lg:min-w-[18rem] lg:px-8 lg:py-3 lg:text-[15px]"
+          >
+            {isAuthenticated ? 'המשך לתשלום' : 'התחברו כדי לשלם'}
           </Button>
-          {error ? <p className="rounded-[1.25rem] bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="rounded-[0.9rem] bg-red-50 px-3.5 py-2 text-sm text-red-600">{error}</p> : null}
         </div>
       }
     >
-      <div className="grid gap-6 2xl:grid-cols-[1.08fr_0.92fr]">
-        <section className="space-y-5">
-          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
-            <h2 className="text-2xl font-black text-[#161625]">פורמט הספר</h2>
-            <p className="mt-1 text-sm text-gray-500">כך הספר ירגיש במסך ובקובץ הסופי.</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {formats.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setFormat(f.id)}
-                  className={cn(
-                    'rounded-[1.75rem] border p-5 text-right transition-all',
-                    params.format === f.id
-                      ? 'border-coral-300 bg-coral-50 shadow-[0_16px_28px_rgba(232,124,83,0.12)]'
-                      : 'border-black/5 bg-[#FFF9F0] hover:-translate-y-0.5 hover:shadow-[0_14px_24px_rgba(23,25,37,0.08)]'
-                  )}
-                >
-                  <p className="text-lg font-black text-[#161625]">{f.label}</p>
-                  <p className="mt-1 text-sm text-gray-500">{f.hint}</p>
-                </button>
-              ))}
-            </div>
-          </section>
+      <div className="space-y-4">
+        <div className="max-w-[44rem]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-coral-400">רגע האישור</p>
+          <h2 className="mt-1 text-[1.65rem] font-black leading-tight text-white">מסכמים את ההזמנה</h2>
+          <p className="mt-1 text-sm leading-5 text-white/55">בחרו איך תרצו לקבל את הספר ולחצו להמשך לתשלום.</p>
+        </div>
 
-          <section className="overflow-hidden rounded-[2.2rem] border border-black/5 shadow-sm">
-            <div className="grid gap-0 xl:grid-cols-[1.05fr_0.95fr]">
-              <div className="bg-[linear-gradient(180deg,#171925_0%,#10111a_100%)] p-6 text-white lg:p-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-300">Preview</p>
-                <h2 className="mt-4 text-3xl font-black leading-tight">{previewTitle}</h2>
-                <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">
-                  {isJournal
-                    ? 'יומן העצמה משפחתי עם 5 פרקים, 30 עמודים ושאלות לשיח.'
-                    : isEnsemble
-                      ? 'ספר משפחתי שבו כל הדמויות שוות בחשיבותן ומופיעות כחלק מאותו סיפור משותף.'
-                      : 'ספר מותאם אישית בעברית עם דמויות אמיתיות, עלילה מקורית ו-PDF מוכן לקריאה.'}
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-[1.5rem] bg-white/8 p-4">
-                    <p className="text-white/55">משך יצירה</p>
-                    <p className="mt-1 text-lg font-bold text-white">{estimatedTime}</p>
-                  </div>
-                  <div className="rounded-[1.5rem] bg-white/8 p-4">
-                    <p className="text-white/55">אורך משוער</p>
-                    <p className="mt-1 text-lg font-bold text-white">{totalPagesLabel}</p>
-                  </div>
+        <div className="grid gap-3 xl:grid-cols-[1fr_1.12fr] xl:items-start">
+          <aside className="space-y-3 xl:order-1">
+            <section className="rounded-[1.65rem] border border-white/10 bg-[linear-gradient(180deg,#171925_0%,#10111a_100%)] p-4 text-white shadow-[0_18px_42px_rgba(0,0,0,0.2)]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-coral-300">סיכום</p>
+                  <h3 className="mt-1.5 text-[2rem] font-black leading-tight">{previewTitle}</h3>
                 </div>
+                <Badge variant="ready">מוכן לאישור</Badge>
               </div>
 
-              <div className="bg-[linear-gradient(180deg,#fffaf3_0%,#fff4e6_100%)] p-6 lg:p-8">
-                <div className="rounded-[1.9rem] border border-coral-100 bg-white p-5 shadow-sm">
-                  <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                    <p className="text-sm font-semibold text-coral-700">הספר שבחרתם</p>
-                    <Badge variant="popular">מוכן לאישור</Badge>
-                  </div>
-                  <h3 className="mt-3 text-2xl font-black text-[#161625]">
-                    {params.template ? TEMPLATE_LABELS[params.template] : 'ספר אישי'}
-                  </h3>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {params.characters?.map((character) => (
-                      <span key={character.id} className="rounded-full bg-coral-50 px-3 py-1 text-xs font-semibold text-coral-700">
-                        {character.name || 'דמות חדשה'}
-                        {character.familyRole ? ` · ${getCharacterDisplayRole(character)}` : ''}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
-            <h2 className="text-2xl font-black text-[#161625]">סיכום הבחירות</h2>
-            <div className="mt-5 grid gap-4 xl:grid-cols-2">
-              <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">נושא הספר</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">
-                  {params.template ? TEMPLATE_LABELS[params.template] : 'טרם נבחר'}
-                </p>
-              </div>
-              <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">עמודים ותמונות</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">{totalPagesLabel}</p>
-              </div>
-              <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">דמויות</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">{params.characters?.length || 0} דמויות</p>
-                <p className="mt-1 text-sm text-gray-500">
-                  {isEnsemble ? 'כולן שוות בחשיבותן בסיפור · תמונה אחת לכל דמות' : `${mainCharacter || 'ללא שם ראשי'} · תמונה אחת לכל דמות`}
-                </p>
-              </div>
-              <div className="rounded-[1.6rem] bg-[#FFF9F0] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">מסר</p>
-                <p className="mt-2 text-lg font-black text-[#161625]">{params.desiredMessage || 'לא הוגדר מסר'}</p>
-                <p className="mt-1 text-sm text-gray-500">{params.includeNikud ? 'עם ניקוד' : 'ללא ניקוד'}</p>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm lg:p-6">
-            <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <div>
-                <h2 className="text-2xl font-black text-[#161625]">אופן קבלת הספר</h2>
-                <p className="mt-2 text-sm leading-7 text-gray-600">
-                  הבחירה כאן יוצרת גם הזמנה מסודרת במערכת התפעולית.
-                </p>
-              </div>
-              <div className="flex w-full flex-wrap gap-2 rounded-[1.5rem] bg-[#FFF4E6] p-1.5 sm:w-auto sm:flex-nowrap sm:gap-0 sm:rounded-full sm:p-1">
-                <button
-                  type="button"
-                  onClick={() => setDeliveryOption('digital')}
-                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-                    orderDraft.deliveryOption === 'digital' ? 'bg-[#161625] text-white' : 'text-[#161625]'
-                  }`}
-                >
-                  PDF דיגיטלי
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeliveryOption('physical')}
-                  className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition sm:flex-none ${
-                    orderDraft.deliveryOption === 'physical' ? 'bg-[#161625] text-white' : 'text-[#161625]'
-                  }`}
-                >
-                  ספר מודפס
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-4 xl:grid-cols-2">
-              <ShippingField
-                label="קוד קופון"
-                value={orderDraft.promotionCode || ''}
-                onChange={(value) => updateOrderDraft({ promotionCode: value })}
-                placeholder="SUMMER2026"
-              />
-            </div>
-
-            {orderDraft.deliveryOption === 'physical' ? (
-              <div className="mt-5 grid gap-4 xl:grid-cols-2">
-                <ShippingField
-                  label="שם נמען"
-                  value={orderDraft.shippingAddress?.recipientName || ''}
-                  onChange={(value) => updateShippingAddress({ recipientName: value })}
-                />
-                <ShippingField
-                  label="טלפון"
-                  value={orderDraft.shippingAddress?.phone || ''}
-                  onChange={(value) => updateShippingAddress({ phone: value })}
-                />
-                <div className="xl:col-span-2">
-                  <ShippingField
-                    label="כתובת"
-                    value={orderDraft.shippingAddress?.addressLine1 || ''}
-                    onChange={(value) => updateShippingAddress({ addressLine1: value })}
-                  />
-                </div>
-                <ShippingField
-                  label="עיר"
-                  value={orderDraft.shippingAddress?.city || ''}
-                  onChange={(value) => updateShippingAddress({ city: value })}
-                />
-                <ShippingField
-                  label="מיקוד"
-                  value={orderDraft.shippingAddress?.postalCode || ''}
-                  onChange={(value) => updateShippingAddress({ postalCode: value })}
-                />
-              </div>
-            ) : null}
-          </section>
-        </section>
-
-        <aside className="space-y-5">
-          <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-              <div>
-                <p className="text-sm font-semibold text-gray-600">מחיר הספר</p>
-                <p className="mt-1 text-4xl font-black text-coral-700">₪{price}</p>
-              </div>
-              <Badge variant="popular">
-                {orderDraft.deliveryOption === 'physical' ? 'כולל פתיחת fulfillment' : 'כולל PDF'}
-              </Badge>
-            </div>
-            <p className="mt-4 text-sm leading-7 text-gray-600">
-              כרגע האישור פותח הזמנה ידנית חכמה. כשמסלול ה-checkout של Stripe יושלם, אותו מסלול ידע לעבוד גם עם תשלום אמיתי.
-            </p>
-          </section>
-
-          <section className="rounded-[2rem] border border-black/5 bg-[#171925] p-5 text-white shadow-[0_20px_40px_rgba(23,25,37,0.18)]">
-            <h2 className="text-xl font-black">מה קורה אחרי האישור?</h2>
-            <div className="mt-4 space-y-3">
-              {nextSteps.map((step, index) => (
-                <div key={step} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-coral-200">
-                    {index + 1}
-                  </span>
-                  <p className="text-sm leading-7 text-white/72">{step}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {!isAuthenticated || showAuthGate ? (
-            <section className="rounded-[2rem] border border-black/5 bg-white p-5 shadow-sm">
-              <h2 className="text-xl font-black text-[#161625]">צריך רק להתחבר לפני שמתחילים</h2>
-              <p className="mt-2 text-sm leading-7 text-gray-600">
-                כל הפרטים נשמרו. התחברו או צרו חשבון, ונחזיר אתכם בדיוק לכאן כדי להתחיל ביצירה.
+              <p className="mt-2 text-sm leading-5 text-white/70">
+                {isJournal
+                  ? 'יומן העצמה משפחתי עם פרקים, שאלות לשיח ומסרים אישיים.'
+                  : isEnsemble
+                    ? 'ספר משפחתי שבו כל הדמויות מופיעות כחלק מאותו סיפור משותף.'
+                    : 'ספר אישי בעברית עם דמויות אמיתיות, עלילה מקורית ותוצאה שמוכנה לקריאה.'}
               </p>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <Link href="/login?returnTo=/create" className="flex-1">
-                  <Button size="md" className="w-full">
-                    כניסה והמשך ליצירה
-                  </Button>
-                </Link>
-                <Link href="/signup?returnTo=/create" className="flex-1">
-                  <Button variant="outline" size="md" className="w-full">
-                    הרשמה והמשך
-                  </Button>
-                </Link>
+
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {params.characters?.map((character) => (
+                  <span key={character.id} className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/90">
+                    {character.name || 'דמות חדשה'}
+                    {character.familyRole ? ` · ${getCharacterDisplayRole(character)}` : ''}
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                <SummaryItem label="נושא הספר" value={params.template ? TEMPLATE_LABELS[params.template] : 'טרם נבחר'} />
+                <SummaryItem label="משך יצירה" value={estimatedTime} />
+                <SummaryItem label="אורך" value={totalPagesLabel} />
+                <SummaryItem
+                  label="דמויות"
+                  value={`${params.characters?.length || 0} דמויות`}
+                  detail={isEnsemble ? 'כל הדמויות שוות בחשיבותן' : mainCharacter || 'דמות ראשית אחת'}
+                />
+                <SummaryItem label="ניקוד" value={params.includeNikud ? 'עם ניקוד' : 'ללא ניקוד'} />
+                <SummaryItem label="מסר" value={params.desiredMessage || 'לא הוגדר מסר'} />
               </div>
             </section>
-          ) : null}
-        </aside>
+
+            {!isAuthenticated || showAuthGate ? (
+              <section className="rounded-[1.5rem] border border-black/5 bg-[#FFF9F0] p-4 shadow-sm">
+                <h3 className="text-base font-black text-[#161625]">צריך רק להתחבר לפני שמשלמים</h3>
+                <p className="mt-1 text-sm leading-5 text-gray-600">כל הפרטים נשמרו. התחברו ונחזיר אתכם ישר לכאן.</p>
+                <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                  <Link href="/login?returnTo=/create" className="block">
+                    <Button size="md" className="w-full">כניסה</Button>
+                  </Link>
+                  <Link href="/signup?returnTo=/create" className="block">
+                    <Button variant="outline" size="md" className="w-full">הרשמה</Button>
+                  </Link>
+                </div>
+              </section>
+            ) : null}
+          </aside>
+
+          <section className="xl:order-2">
+            <div className="rounded-[1.65rem] border border-black/5 bg-[#FFF9F0] p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-500">בחירת הזמנה</p>
+              <h3 className="mt-1 text-[1.6rem] font-black text-[#161625]">איך תרצו לקבל את הספר?</h3>
+
+              <div className="mt-3 grid gap-2.5 md:grid-cols-2">
+                {/* Digital — active */}
+                <div className="rounded-[1.2rem] border border-coral-300 bg-coral-50 px-3.5 py-3 shadow-[0_14px_26px_rgba(232,124,83,0.10)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-base font-black text-[#161625]">PDF דיגיטלי</p>
+                      <p className="mt-0.5 text-sm leading-5 text-gray-500">קובץ מוכן לקריאה ולשליחה כמתנה</p>
+                    </div>
+                    <span className="rounded-full bg-[#FFF3E7] px-2.5 py-1 text-sm font-semibold text-coral-700">
+                      ₪{digitalPrice}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Physical — coming soon */}
+                <div className={cn('rounded-[1.2rem] border border-black/5 bg-white px-3.5 py-3 opacity-60')}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-black text-[#161625]">ספר מודפס</p>
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500">בקרוב</span>
+                      </div>
+                      <p className="mt-0.5 text-sm leading-5 text-gray-400">הדפסה ומשלוח לכתובת שתבחרו</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
       </div>
     </CreateShell>
   )
